@@ -1,0 +1,30 @@
+{
+  "name": "Prediction-Market-Smart-Contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rashtrakoff/Prediction-Market-Smart-Contracts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rashtrakoff/Prediction-Market-Smart-Contracts/issues"
+  },
+  "homepage": "https://github.com/rashtrakoff/Prediction-Market-Smart-Contracts#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^3.2.2",
+    "ethers": "^5.0.26",
+    "hardhat": "^2.0.8"
+  },
+  "dependencies": {}
+}
