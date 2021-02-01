@@ -2,27 +2,21 @@
 pragma solidity >=0.8.0;
 
 import "./CloneFactory.sol";
-import "../Markets/EIP1167_Market.sol";
-
-/***
- * @title EIP1167_MarketFactory
- * @author codeDcode member Chinmay Vemuri
- * @notice EIP1167 compliant factory contract
- * @dev Testing required. Also check for the gas costs.
- */
+import "../Question/EIP1167_Question.sol";
  
-contract EIP1167_MarketFactory is CloneFactory 
+contract EIP1167_Factory is CloneFactory 
 {
     address public immutable admin; /// @dev May change this to array/mapping to allow bunch of admins.
     address public implementation; /// @dev Market implementation contract. 
     address[] public markets;
     
-    event newMarketCreated(address indexed newMarket, string _question);
+    event newQuestionCreated(address indexed newMarket, string _question);
     
     /// @dev To check if a market is valid or not.
-    modifier validMarketParams(string memory _question, uint8 _numOptions, string[] memory _options, uint256 _endTime)
+    modifier validParams(string memory _question, string[] memory _options, uint256 _endTime)
     {
-        require(_numOptions > 1 && _numOptions < 6 && _numOptions == _options.length, "Number of options must lie between 2 and 5 (inclusive)");
+        uint _numOptions = _options.length;
+        require(_numOptions > 1 && _numOptions < 6, "Number of options must lie between 2 and 5 (inclusive)");
         require(keccak256(abi.encodePacked(_question)) != keccak256(""), "Empty questions not allowed");
             
         for(uint8 i = 0; i < _numOptions; ++i)
@@ -48,14 +42,14 @@ contract EIP1167_MarketFactory is CloneFactory
         implementation = _implementation;
     }
     
-    function createMarket(string calldata _question, uint8 _numOptions, string[] calldata _options, uint256 _endTime) external 
-    validMarketParams(_question, _numOptions, _options, _endTime)
+    function createMarket(string calldata _question, string[] calldata _options, uint256 _endTime) external 
+    validParams(_question, _options, _endTime)
     {
-        address newMarket = createClone(implementation);
-        EIP1167_Market(newMarket).init(msg.sender, _question, _numOptions, _options, _endTime);
+        address newQuestion = createClone(implementation);
+        EIP1167_Question(newQuestion).init(msg.sender, _question, _options, _endTime);
         
-        markets.push(newMarket);
-        emit newMarketCreated(newMarket, _question);
+        markets.push(newQuestion);
+        emit newQuestionCreated(newQuestion, _question);
     }
         
 }

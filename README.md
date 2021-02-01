@@ -10,7 +10,8 @@
  - `contracts`: smart contract scripts
  - `migrations`: migration scripts
  - `test`: testing scripts
-### Temporary scripts
+
+### Temporary
  - `artifacts`: compiled scripts, needed for integrating with front-end
  
     We need the `interface` files of the compiled contracts.

@@ -4,15 +4,12 @@ const {
   isCallTrace,
 } = require("hardhat/internal/hardhat-network/stack-traces/message-trace");
 
-let market;
-let marketFactory;
+let templateQuestion;
+let templateQuestionAddress;
+let factory;
 
-let marketAddress;
-let accounts;
 
-let admin;
-let owner;
-let user;
+let accounts,admin,owner,user;
 
 let provider = ethers.getDefaultProvider();
 
@@ -24,19 +21,18 @@ beforeEach(async () => {
   owner = accounts[1];
   user = accounts[2];
 
-  let marketObject = await ethers.getContractFactory("EIP1167_Market");
-  market = await marketObject.deploy();
+  let templateQuestionObject = await ethers.getContractFactory("EIP1167_Question");
+  templateQuestion = await templateQuestionObject.deploy();
 
-  marketAddress = await market.address;
+  templateQuestionAddress = await templateQuestion.address;
 
-  let factoryObject = await ethers.getContractFactory("EIP1167_MarketFactory");
-  marketFactory = await factoryObject.connect(admin).deploy(marketAddress);
+  let factoryObject = await ethers.getContractFactory("EIP1167_Factory");
+  factory = await factoryObject.connect(admin).deploy(templateQuestionAddress);
 
-  await marketFactory
+  await factory
     .connect(owner)
     .createMarket(
       "Who do we think we are?",
-      2,
       ["Humans", "Animals"],
       toTimestamp("01/01/2029 00:00:00")
     );
@@ -58,8 +54,8 @@ describe("Market contract", () => {
   // });
 
   it("is setting the owner correctly.", async () => {
-    let firstDeployedQuestionAddress = await marketFactory.markets(0);
-    let abi = (await ethers.getContractFactory("Market")).interface;
+    let firstDeployedQuestionAddress = await factory.markets(0);
+    let abi = (await ethers.getContractFactory("Question")).interface;
 
     let question = new ethers.Contract(
       firstDeployedQuestionAddress,
