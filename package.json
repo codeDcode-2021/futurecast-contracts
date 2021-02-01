@@ -1,5 +1,5 @@
 {
-  "name": "Prediction-Market-Smart-Contracts",
+  "name": "kokken",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rashtrakoff/Prediction-Market-Smart-Contracts.git"
+    "url": "git+https://github.com/codeDcode-2021/smart-contract-testing.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/rashtrakoff/Prediction-Market-Smart-Contracts/issues"
+    "url": "https://github.com/codeDcode-2021/smart-contract-testing/issues"
   },
-  "homepage": "https://github.com/rashtrakoff/Prediction-Market-Smart-Contracts#readme",
+  "homepage": "https://github.com/codeDcode-2021/smart-contract-testing#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
