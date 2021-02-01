@@ -19,8 +19,8 @@ contract EIP1167_Market
         options = _options;
         endTime = _endTime;
         
-        console.log("Address of this contract is %s", address(this));
-        console.log("Owner of this contract is %s", owner);
+        // console.log("Address of this contract is %s", address(this));
+        // console.log("Owner of this contract is %s", owner);
     }
         
 }
