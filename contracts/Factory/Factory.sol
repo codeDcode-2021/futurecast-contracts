@@ -5,9 +5,9 @@ import "../Question/Question.sol";
 
 contract Factory
 {
-    address[] public marketAddresses;
+    address[] public questionAddresses;
     
-    event newQuestionCreated(address indexed _market, string question);
+    event newQuestionCreated(address indexed _question, string _description);
     
     modifier validParams(string memory _question, string[] memory _options, uint256 _endTime)
     {
@@ -24,10 +24,14 @@ contract Factory
         _;
     }
     
-    function createMarket(string calldata _statement, string[] calldata _options, uint256 _endTime) external validParams(_statement,  _options, _endTime)
+    function createQuestion(string calldata _description, string[] calldata _options, uint256 _endTime) external validParams(_description,  _options, _endTime)
     {
-        Question newQuestion = new Question(_statement, _options, _endTime);
-        marketAddresses.push(address(newQuestion));
-        emit newQuestionCreated(address(newQuestion), _statement);
+        Question newQuestion = new Question(_description, _options, _endTime);
+        questionAddresses.push(address(newQuestion));
+        emit newQuestionCreated(address(newQuestion), _description);
+    }
+
+    function giveLastDeployed() public view returns (address) {
+        return questionAddresses[questionAddresses.length-1];
     }
 }

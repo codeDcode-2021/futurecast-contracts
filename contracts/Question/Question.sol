@@ -4,9 +4,12 @@ pragma solidity >=0.8.0;
 contract Question
 {
     address public immutable owner;
-    string private question;
-    string[] private options;
+    string public question;
+    string[] public options;
     uint256 public immutable endTime;
+
+
+
     
     // modifier validMarketParams(
     //     string memory _question, 
@@ -41,11 +44,13 @@ contract Question
     
     constructor(string memory _question, string[] memory _options, uint256 _endTime)
     {
-
         owner = tx.origin;
         question = _question;
         options = _options;
         endTime = _endTime;
     }
     
+    function giveOptions() public view returns (string[] memory) {
+        return options;
+    }
 }
