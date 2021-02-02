@@ -8,7 +8,7 @@ let factory;
 let accounts, admin, owner, user;
 
 let provider = ethers.getDefaultProvider();
-let questionInterface; 
+let questionInterface;
 
 const make2 = (str) => {
   str = str.toString();
@@ -56,7 +56,9 @@ beforeEach(async () => {
 
 describe("Factory/Question Contract", () => {
   it("is setting the owner correctly.", async () => {
-    let deployedQuestionAddress = await factory.connect(user).questionAddresses(0);
+    let deployedQuestionAddress = await factory
+      .connect(user)
+      .questionAddresses(0);
 
     let question = new ethers.Contract(
       deployedQuestionAddress,
@@ -97,4 +99,48 @@ describe("Factory/Question Contract", () => {
       assert.strictEqual(_options[i], options[i]);
     }
   });
+
+  it("allows users to vote.", async () => {
+    let deployedQuestionAddress = await factory
+      .connect(user)
+      .questionAddresses(0);
+
+    let question = new ethers.Contract(
+      deployedQuestionAddress,
+      questionInterface,
+      provider
+    );
+
+    let tx = await question.connect(user).vote(0, {
+      value: ethers.utils.parseEther("1"),
+    });
+
+    // console.log(parseInt(tx.gasLimit._hex));
+  });
+
+  it("does not allow voting twice.", async () => {
+    let deployedQuestionAddress = await factory
+      .connect(user)
+      .questionAddresses(0);
+
+    let question = new ethers.Contract(
+      deployedQuestionAddress,
+      questionInterface,
+      provider
+    );
+
+    await question.connect(user).vote(0, {
+      value: ethers.utils.parseEther("1"),
+    });
+
+    try {
+      await question.connect(user).vote(0, {
+        value: ethers.utils.parseEther("1"),
+      });
+      assert(false);
+    } catch (error) {
+      // console.log(error);  
+    }
+  });
+  
 });
