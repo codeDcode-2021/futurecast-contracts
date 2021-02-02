@@ -1,5 +1,11 @@
 # Kokken
 
+## Important files
+```
+contracts/Factory/Factory.sol
+contracts/Question/Question.sol
+```
+
 ## How to run?
  - `npm i`
  - `npm run compile`
