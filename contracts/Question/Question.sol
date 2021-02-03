@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 contract Question
 {
     address public immutable owner;
-    string public question;
+    string public description;
     string[] public options;
     uint256 public immutable endTime;
 
@@ -48,10 +48,10 @@ contract Question
     //     _;
     // }
     
-    constructor(string memory _question, string[] memory _options, uint256 _endTime)
+    constructor(string memory _description, string[] memory _options, uint256 _endTime)
     {
         owner = tx.origin;
-        question = _question;
+        description = _description;
         options = _options;
         endTime = _endTime;
     }

@@ -1,73 +1,63 @@
-const { assert } = require("chai");
-const { ethers } = require("hardhat");
-const {
-  isCallTrace,
-} = require("hardhat/internal/hardhat-network/stack-traces/message-trace");
+const assert = require("assert");
+const maxGas = 10000000;
+const optionSettings = {
+  a: 10,
+  default_balance_ether: 10,
+  gasLimit: maxGas,
+  callGasLimit: maxGas,
+};
+
+const ganache = require("ganache-cli");
+const provider = ganache.provider(optionSettings);
+const Web3 = require("web3");
+const web3 = new Web3(provider);
+
+const compiledFactory = require("./../artifacts/contracts/Factory/Factory.sol/Factory.json");
+const compiledQuestion = require("./../artifacts/contracts/Question/Question.sol/Question.json");
+const lib = require("../helper/t_conversions");
+
+const questionInstance = async (deployedAddress) => {
+  return (await new web3.eth.Contract(compiledQuestion.abi, deployedAddress))
+    .methods;
+};
 
 let factory;
+let question;
 let accounts, admin, owner, user;
 
-let provider = ethers.getDefaultProvider();
-let questionInterface;
-
-const make2 = (str) => {
-  str = str.toString();
-  return str.length == 1 ? "0".concat(str) : str;
-};
-const toUnix = (strDate) => Date.parse(strDate) / 1000;
-const fromUnix = (UNIX_timestamp) => {
-  var a = new Date(UNIX_timestamp * 1000);
-  var year = a.getFullYear();
-  var month = make2(a.getMonth() + 1);
-  var date = make2(a.getDate());
-  var hour = make2(a.getHours());
-  var min = make2(a.getMinutes());
-  var sec = make2(a.getSeconds());
-  var time =
-    month + "/" + date + "/" + year + " " + hour + ":" + min + ":" + sec;
-  return time;
-};
+const toEth = (inWei)=> web3.utils.fromWei(inWei, "ether");
+const toWei = (inEth)=> web3.utils.toWei(inEth, "ether");
 
 beforeEach(async () => {
-  // Getting all accounts
-  accounts = await ethers.getSigners();
-
-  // Setting appropriate accounts
+  accounts = await web3.eth.getAccounts();
   admin = accounts[0];
   owner = accounts[1];
   user = accounts[2];
 
-  // Setting interface for question contract
-  questionInterface = (await ethers.getContractFactory("Question")).interface;
+  factoryInstance = await new web3.eth.Contract(compiledFactory.abi)
+    .deploy({
+      data: compiledFactory.bytecode,
+    })
+    .send({ from: admin, gas: maxGas });
 
-  // Deploying the factory contract
-  let factoryObject = await ethers.getContractFactory("Factory");
-  factory = await factoryObject.connect(admin).deploy();
-
-  // Calling the factory contract to deploy on Question
-  await factory
-    .connect(owner)
-    .createQuestion(
-      "Who do we think we are?",
-      ["Humans", "Animals"],
-      toUnix("01/01/2029 00:00:00")
-    );
+  factory = factoryInstance.methods;
 });
 
 describe("Factory/Question Contract", () => {
   it("is setting the owner correctly.", async () => {
-    let deployedQuestionAddress = await factory
-      .connect(user)
-      .questionAddresses(0);
+    await factory
+      .createQuestion(
+        "Who do we think we are?",
+        ["Humans", "Animals"],
+        lib.toUnix("01/01/2029 00:00:00")
+      )
+      .send({ from: owner, gas: maxGas });
+    let deployedQuestionAddress = await factory.questionAddresses(0).call();
 
-    let question = new ethers.Contract(
-      deployedQuestionAddress,
-      questionInterface,
-      provider
-    );
+    question = await questionInstance(deployedQuestionAddress);
 
-    let _owner = await question.connect(user).owner();
-    assert.strictEqual(_owner, owner.address);
+    let _owner = await question.owner().call();
+    assert.strictEqual(_owner, owner);
   });
 
   it("is setting the basic information[description, options, endTime] correctly.", async () => {
@@ -76,71 +66,40 @@ describe("Factory/Question Contract", () => {
     let endTime = "12/31/2030 05:05:05";
 
     await factory
-      .connect(owner)
-      .createQuestion(description, options, toUnix(endTime));
+      .createQuestion(description, options, lib.toUnix(endTime))
+      .send({ from: owner, gas: maxGas });
 
-    let deployedQuestionAddress = await factory
-      .connect(user)
-      .giveLastDeployed();
-    let question = new ethers.Contract(
-      deployedQuestionAddress,
-      questionInterface,
-      provider
-    );
+    let deployedQuestionAddress = await factory.questionAddresses(0).call();
+    question = await questionInstance(deployedQuestionAddress);
 
-    let _description = await question.connect(user).question();
+    let _description = await question.description().call();
+    let _options = await question.giveOptions().call();
+    let _endTime = await question.endTime().call();
+
     assert.strictEqual(_description, description);
-
-    let _endtime = await question.connect(user).endTime();
-    assert.strictEqual(fromUnix(parseInt(_endtime._hex)), endTime);
-
-    let _options = await question.connect(user).giveOptions();
+    assert.strictEqual(lib.fromUnix(_endTime), endTime);
     for (let i = 0; i < options.length; i++) {
-      assert.strictEqual(_options[i], options[i]);
+      assert.strictEqual(options[i], _options[i]);
     }
   });
 
   it("allows users to vote.", async () => {
-    let deployedQuestionAddress = await factory
-      .connect(user)
-      .questionAddresses(0);
+    let description = "Who will win World Cup 2030";
+    let options = ["India", "Australia"];
+    let endTime = "12/31/2030 05:05:05";
 
-    let question = new ethers.Contract(
-      deployedQuestionAddress,
-      questionInterface,
-      provider
-    );
+    await factory
+      .createQuestion(description, options, lib.toUnix(endTime))
+      .send({ from: owner, gas: maxGas });
 
-    let tx = await question.connect(user).vote(0, {
-      value: ethers.utils.parseEther("1"),
-    });
+    let deployedQuestionAddress = await factory.questionAddresses(0).call();
+    question = await questionInstance(deployedQuestionAddress);
 
-    // console.log(parseInt(tx.gasLimit._hex));
+    await question.vote(0).send({from: user, value: toWei('1')});
   });
 
   it("does not allow voting twice.", async () => {
-    let deployedQuestionAddress = await factory
-      .connect(user)
-      .questionAddresses(0);
-
-    let question = new ethers.Contract(
-      deployedQuestionAddress,
-      questionInterface,
-      provider
-    );
-
-    await question.connect(user).vote(0, {
-      value: ethers.utils.parseEther("1"),
-    });
-
-    try {
-      await question.connect(user).vote(0, {
-        value: ethers.utils.parseEther("1"),
-      });
-      assert(false);
-    } catch (error) {
-      // console.log(error);  
-    }
+    // TODO: 
+    
   });
-  
 });
