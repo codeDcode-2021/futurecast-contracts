@@ -11,6 +11,13 @@ contracts/Question/Question.sol
  - `npm run compile`
  - `npm run test`
 
+## <b>Info for front-end team</b>
+ - `helper/factory.js`
+ - `helper/question.js`
+ - `helper/web3.js`
+ - interface for Factory
+ - interface for Question
+
 ## Directories
 ### Permanent:
  - `contracts`: smart contract scripts
