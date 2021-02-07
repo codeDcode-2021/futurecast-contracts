@@ -2,8 +2,8 @@
 pragma solidity >= 0.7.0 < 0.8.0;
 pragma abicoder v2;
 
-import "./console.sol";
-import { SafeMath } from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.4.0/contracts/math/SafeMath.sol";
+import "../Utils/console.sol";
+import { SafeMath } from "../Utils/SafeMath.sol";
 
 contract EIP1167_Question 
 {
