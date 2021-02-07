@@ -60,12 +60,18 @@ contract EIP1167_Question
         // console.log("Owner of this contract is %s", owner);
     }
     
+    function getMarketBalance() external view returns (uint256)
+    {
+        return address(this).balance;
+    }
+    
     function stake(uint256 _optionId) external payable checkState(currState) validOption(_optionId)
     {
         /***
          * Test this function for rounding errors.
          * Check if there is a better way to collect fees.
          * Uncomment the lines in this function after importing validationFee code.
+         * Add a require statement to check for validationFee.
          */
         uint256 amount = msg.value;
         uint256 marketMakerFee = amount.sub(MARKET_MAKER_FEE_PER*amount/1000);
@@ -96,6 +102,7 @@ contract EIP1167_Question
         stakeDetails[msg.sender][_fromOptionId] = _fromOptionStakedAmount.sub(_amount);
         stakeDetails[msg.sender][_toOptionId] = _toOptionStakedAmount.add(_amount);
     }
+    
     
         
 }
