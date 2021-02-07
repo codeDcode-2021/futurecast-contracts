@@ -87,8 +87,11 @@ contract Question
     function additionalFee() public view returns(uint){
         uint T = (endTime - startTime)/86400;
         uint t = (endTime - block.timestamp)/86400;
+        assert(t>0 && T>0 && t<T);
+
 
         t = 8; // just for testing purpose
+
 
         uint calFactor = 10**3;
 
@@ -101,6 +104,8 @@ contract Question
         t = calFactor*(t - nmin)/(nmax - nmin);   
         t = fmin + (fmax-fmin)*t;
 
+        assert(t>nmin && t<nmax);
+        
         return t;
     }
 }
