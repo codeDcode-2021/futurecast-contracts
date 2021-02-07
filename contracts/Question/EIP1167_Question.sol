@@ -15,6 +15,7 @@ contract EIP1167_Question
     address public owner;
     string public question;
     string[] public options;
+    uint256 public startTime;
     uint256 public endTime;  
     uint256 public reportingEndTime;
     uint256[] public optionBalances;
@@ -67,10 +68,14 @@ contract EIP1167_Question
         owner = _owner;
         question = _question;
         options = _options;
+        startTime = block.timestamp;
         endTime = _endTime;
         reportingEndTime = _endTime + 2 days; /// @dev Change this if necessary
         currState = State.BETTING;
         marketInitialized = true;
+        
+        for(uint8 i = 0; i <= _options.length; ++i) // <= So that invalid option can also be accounted for.
+            optionBalances.push(0);
         
         // Code for testing purpose
         // console.log("Address of this contract is %s", address(this));
@@ -82,9 +87,28 @@ contract EIP1167_Question
         return address(this).balance;
     }
     
+    function changeState() external
+    {
+        /***
+         * @notice Ideally, we want only the owner to change the state but if anything unforeseen happens to the owner then anyone should be able to change the state as long as it is fair.
+         */ 
+        if(currState == State.BETTING)
+        {
+            require(block.timestamp >= endTime, "You can't change the phase now !");
+            currState = State.REPORTING;
+        }
+        
+        else if(currState == State.REPORTING)
+        {
+            require(block.timestamp >= reportingEndTime, "You can't change the phase now !");
+            currState = State.RESOLVED;
+        }
+    }
+    
     function stake(uint256 _optionId) external payable checkState(State.BETTING) validOption(_optionId)
     {
         /***
+         * @TODO
          * Test this function for rounding errors.
          * Check if there is a better way to collect fees.
          * Uncomment the lines in this function after importing validationFee code.
@@ -126,23 +150,6 @@ contract EIP1167_Question
         emit stakeChanged(address(this), msg.sender, _fromOptionId, _toOptionId, _amount);
     }
     
-    function changeState() external
-    {
-        /***
-         * @notice Ideally, we want only the owner to change the state but if anything unforeseen happens to the owner then anyone should be able to change the state as long as it is fair.
-         */ 
-        if(currState == State.BETTING)
-        {
-            require(block.timestamp >= endTime, "You can't change the phase now !");
-            currState = State.REPORTING;
-        }
-        
-        else if(currState == State.REPORTING)
-        {
-            require(block.timestamp >= reportingEndTime, "You can't change the phase now !");
-            currState = State.RESOLVED;
-        }
-    }
     
     // function declareResult(uint256 _optionId) external checkState(State.REPORTING) onlyOwner
     // {
@@ -161,6 +168,7 @@ contract EIP1167_Question
     
     function redeemBettingPayout() external checkState(State.RESOLVED)
     {
+        // TODO
         require(hasVoted[msg.sender], "You have not participated in the market !");
         
     }
