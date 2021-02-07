@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: Unlicensed
+<<<<<<< HEAD
 pragma solidity >=0.7.0 <0.8.0;
 pragma abicoder v2;
+=======
+pragma solidity >=0.8.0;
+import "./console.sol";
+>>>>>>> c46b0566366ebad406a135366accba763f09131a
 
 contract Question
 {
@@ -8,6 +13,8 @@ contract Question
     string public description;
     string[] public options;
     uint256 public immutable endTime;
+    uint256 public immutable startTime;
+    
 
     bool private contractState = true;
 
@@ -55,6 +62,7 @@ contract Question
         description = _description;
         options = _options;
         endTime = _endTime;
+        startTime = block.timestamp;
     }
     
     function giveOptions() public view returns (string[] memory) {
@@ -72,8 +80,27 @@ contract Question
     }
 
 
-    // function haveIVoted() public view {
-        
-    // }
+    function haveIVoted() public view returns (bool) {
+        return hasPaid[msg.sender]!=0;    
+    }
 
+    function additionalFee() public view returns(uint){
+        uint T = (endTime - startTime)/86400;
+        uint t = (endTime - block.timestamp)/86400;
+
+        t = 8; // just for testing purpose
+
+        uint calFactor = 10**3;
+
+        uint nmin = 0;
+        uint nmax = T;
+
+        uint fmin = 1*calFactor;
+        uint fmax = 100*calFactor;
+
+        t = calFactor*(t - nmin)/(nmax - nmin);   
+        t = fmin + (fmax-fmin)*t;
+
+        return t;
+    }
 }
