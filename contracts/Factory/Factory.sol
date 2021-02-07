@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity >=0.7.0 <0.8.0;
 
-import "../Question/Question.sol";
+import "../Question/EIP1167_Question.sol";
 
 contract Factory
 {
