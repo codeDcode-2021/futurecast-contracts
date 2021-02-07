@@ -2,7 +2,7 @@
 pragma solidity >=0.7.0 <0.8.0;
 pragma abicoder v2;
 
-import "./CloneFactory.sol";
+import "../Utils/CloneFactory.sol";
 import "../Question/EIP1167_Question.sol";
  
 contract EIP1167_Factory is CloneFactory 

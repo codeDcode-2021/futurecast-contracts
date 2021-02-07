@@ -20,6 +20,7 @@ contract EIP1167_Question
     uint256 public marketPool;
     uint256 public validationPool;
     uint256 constant private MARKET_MAKER_FEE_PER = 995; // 0.5% for now.
+    uint256 public winningOptionId;
     
     /// @dev mapping(address=>mapping(optionId=>stake))
     mapping(address => mapping(uint256=>uint256)) public stakeDetails; // Change the visibility to private after testing
@@ -72,6 +73,7 @@ contract EIP1167_Question
          * Check if there is a better way to collect fees.
          * Uncomment the lines in this function after importing validationFee code.
          * Add a require statement to check for validationFee.
+         * Check for gas costs.
          */
         uint256 amount = msg.value;
         uint256 marketMakerFee = amount.sub(MARKET_MAKER_FEE_PER*amount/1000);
@@ -86,12 +88,13 @@ contract EIP1167_Question
     }
     
     
-    function changeStake(uint256 _fromOptionId, uint256 _toOptionId, uint256 _amount) external checkState(currState) validOption(_fromOptionId) validOption(_toOptionId)
+    function changeStake(uint256 _fromOptionId, uint256 _toOptionId, uint256 _amount) external checkState(State.BETTING) validOption(_fromOptionId) validOption(_toOptionId)
     {
         /***
          * This function allows the user to change the stake from one option to another option.
          * Discuss whether stake change must be taxed by market maker. The code for this case has not been written.
          */
+        require(block.timestamp < endTime, "Sorry, the betting phase has been completed");
         require(hasVoted[msg.sender], "You haven't staked before !");
         require(stakeDetails[msg.sender][_fromOptionId] >= _amount, "Stake change amount is higher than the staked amount !");
         require(_fromOptionId != _toOptionId, "Options are the same !");
@@ -103,6 +106,6 @@ contract EIP1167_Question
         stakeDetails[msg.sender][_toOptionId] = _toOptionStakedAmount.add(_amount);
     }
     
-    
+    //function changeState
         
 }
