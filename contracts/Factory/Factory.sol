@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity >=0.7.0 <0.8.0;
+pragma abicoder v2;
 
 import "../Question/EIP1167_Question.sol";
 
@@ -26,7 +27,8 @@ contract Factory
     
     function createQuestion(string calldata _description, string[] calldata _options, uint256 _endTime) external validParams(_description,  _options, _endTime)
     {
-        Question newQuestion = new Question(_description, _options, _endTime);
+        EIP1167_Question newQuestion = new EIP1167_Question();
+        newQuestion.init(msg.sender, _description, _options, _endTime);
         questionAddresses.push(address(newQuestion));
         emit newQuestionCreated(address(newQuestion), _description);
     }
