@@ -4,12 +4,17 @@ pragma abicoder v2;
 
 import { SafeMath } from "./SafeMath.sol";
 
+/***
+ * @author codeDcode member Chinmay Vemuri
+ * @dev Can change this to library instead with internal functions ?
+ */
+ 
 contract Formulas
 {
     
     using SafeMath for uint256;
     
-    function rightWrongOptionsBalances(uint256 _rightOption, uint256[] calldata _optionBalances) external pure returns(uint256, uint256)
+    function calcRightWrongOptionsBalances(uint256 _rightOption, uint256[] calldata _optionBalances) external pure returns(uint256, uint256)
     {
         uint256 _wrongOptionsBalance = 0;
         uint256 _rightOptionBalance = 0;
@@ -28,8 +33,13 @@ contract Formulas
         return payout;
     }
     
-    function validationFee(uint256 _currTime, uint256 _startTime, uint256 _endTime) external pure returns(uint256)
+    function calcValidationFee(uint256 _currTime, uint256 _startTime, uint256 _endTime) external pure returns(uint256)
     {
+        /***
+         * @dev Should return a value such that value/1000 is the real percentage
+         * Check for rounding errors
+         */
+        
         uint256 T = _endTime.sub(_startTime);
         uint256 t = _endTime.sub(_currTime);
         T = T.div(86400);
@@ -56,5 +66,24 @@ contract Formulas
         assert(t>nmin && t<nmax);
         
         return t;
+    }
+    
+    function calcWinningOption(uint256[] calldata _reportingOptionBalances) external pure returns(uint256)
+    {
+        uint256 maxAmount = 0;
+        uint256 optionId = _reportingOptionBalances.length - 1; // By default it is invalid
+        
+        for(uint8 i = 0; i < _reportingOptionBalances.length; ++i)
+        {
+            uint256 optionAmount = _reportingOptionBalances[i];
+            
+            if( optionAmount > maxAmount)
+            {
+                maxAmount = optionAmount;
+                optionId = i;
+            }
+        }
+        
+        return optionId;
     }
 }
