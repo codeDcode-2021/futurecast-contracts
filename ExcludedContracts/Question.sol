@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: Unlicensed
-<<<<<<< HEAD
 pragma solidity >=0.7.0 <0.8.0;
 pragma abicoder v2;
-=======
-pragma solidity >=0.8.0;
-import "./console.sol";
->>>>>>> c46b0566366ebad406a135366accba763f09131a
 
 contract Question
 {
