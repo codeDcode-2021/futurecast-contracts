@@ -21,7 +21,7 @@ contract EIP1167_Question
     uint256[] public reportingOptionBalances;
     uint256 public startTime;
     uint256 public endTime;  
-    uint256 public reportingEndTime;
+    // uint256 public reportingEndTime; // Not necessary
     uint256 public bettingRightOptionBalance;
     uint256 public bettingWrongOptionsBalance;
     uint256 public reportingRightOptionBalance;
@@ -107,7 +107,7 @@ contract EIP1167_Question
         options = _options;
         startTime = block.timestamp;
         endTime = _endTime;
-        reportingEndTime = _endTime + 2 days; /// @dev Change this if necessary
+        // reportingEndTime = _endTime + 2 days; /// @dev Change this if necessary
         currState = State.BETTING;
         marketInitialized = true;
         
@@ -140,10 +140,11 @@ contract EIP1167_Question
          * Uncomment the lines in this function after importing validationFee code.
          * Check for gas costs.
          */
+        hasVoted[msg.sender] = true;
         uint256 amount = msg.value;
-        uint256 validationFeePer = formulas.calcValidationFee(block.timestamp, startTime, endTime);
-        uint256 marketMakerFee = amount.sub(MARKET_MAKER_FEE_PER*amount/1000);
-        uint256 validationFee = amount.sub((validationFeePer.sub(MARKET_MAKER_FEE_PER))*amount/1000);
+        uint256 validationFeePer = formulas.calcValidationFeePer(block.timestamp, startTime, endTime);
+        uint256 marketMakerFee = formulas.calcMarketMakerFee(MARKET_MAKER_FEE_PER, amount);
+        uint256 validationFee = formulas.calcValidationFee(MARKET_MAKER_FEE_PER, validationFeePer, amount);
         uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
         uint256 optionStakeAmount = stakeDetails[msg.sender][_optionId];
         marketMakerPool = marketMakerPool.add(marketMakerFee);
@@ -151,7 +152,6 @@ contract EIP1167_Question
         marketPool = marketPool.add(stakeAmount);
         
         stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
-        hasVoted[msg.sender] = true;
         
         emit staked(address(this), msg.sender, _optionId, msg.value);
     }

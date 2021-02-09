@@ -14,6 +14,16 @@ contract Formulas
     
     using SafeMath for uint256;
     
+    function calcMarketMakerFee(uint256 _marketMakerFeePer, uint256 _amount) external pure returns(uint256)
+    {
+        return _amount.sub(_marketMakerFeePer*_amount/1000);
+    }
+
+    function calcValidationFee(uint256 _marketMakerFeePer, uint256 _validationFeePer, uint256 _amount) external pure returns(uint256)
+    {
+        return _amount.sub((_validationFeePer.sub(_marketMakerFeePer))*_amount/1000);
+    }
+
     function calcRightWrongOptionsBalances(uint256 _rightOption, uint256[] calldata _optionBalances) external pure returns(uint256, uint256)
     {
         uint256 _wrongOptionsBalance = 0;
@@ -33,7 +43,7 @@ contract Formulas
         return payout;
     }
     
-    function calcValidationFee(uint256 _currTime, uint256 _startTime, uint256 _endTime) external pure returns(uint256)
+    function calcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) external pure returns(uint256)
     {
         /***
          * @dev Should return a value such that value/1000 is the real percentage
