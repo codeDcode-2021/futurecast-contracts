@@ -33,3 +33,20 @@ contracts/Question/Question.sol
 ## VS Code Extensions
  - Solidity by Juan Blanco: error messages in the editor
  - Prettier - Code Formatter: formatting js files
+
+## Explanation
+
+Phases: {BETTING, REPORTING, RESOLVED}
+
+1) BETTING
+    - People vote on their belief.
+    - Market maker fee applied (0.5%)
+    - Validation fee applied. (Fee - 0.5%)
+    - Fee calculated by a time dependant formula
+
+2) REPORTING
+    - People (Ideally other than the original voters) vote on the right answer.
+    - No fees applied (yet).
+    - People receive money from wrong option voters in the reporting phase as well as from the validation fee pool.
+    - Theoretically, more lucrative to stake money in this phase.
+    - Hence, faster resolution times can be achieved.

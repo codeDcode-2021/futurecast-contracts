@@ -29,20 +29,23 @@ contract EIP1167_Question
     uint256 public marketMakerPool;
     uint256 public marketPool;
     uint256 public validationPool;
-    uint256 public reportingPool;
+    // uint256 public reportingPool; //Not necessary
     uint256 constant public MARKET_MAKER_FEE_PER = 995; // 0.5% for now.
     uint256 public winningOptionId;
     bool marketInitialized;
+    
     /// @dev mapping(address=>mapping(optionId=>stake))
-    mapping(address => mapping(uint256=>uint256)) public stakeDetails; // Change the visibility to private after testing
-    mapping(address => bool) public hasVoted; // For betting purpose. Change the visibility to private after testing
-    mapping(address => bool) public hasStaked; // For open reporting purpose. Change the visibility to private.
+    mapping(address => mapping(uint256=>uint256)) public stakeDetails; // Change the visibility to private after testing. For Betters AND Validators
+    mapping(address => bool) public hasVoted; // For betting purpose. Change the visibility to private after testing. For Betters/Voters.
+    mapping(address => bool) public hasStaked; // For open reporting purpose. Change the visibility to private. For Validators.
     
     
     
     event phaseChange(address indexed _market, State _state);
-    event stakeChanged(address _market, address indexed _user, uint256 _fromOptionId, uint256 _toOptionId, uint256 _amount); // Make _market indexed ?
-    event staked(address _market, address indexed _user, uint256 _optionId, uint256 _amount);
+    event stakeChanged(address indexed _market, address indexed _user, uint256 _fromOptionId, uint256 _toOptionId, uint256 _amount); // Make _market indexed ?
+    event staked(address indexed _market, address indexed _user, uint256 _optionId, uint256 _amount);
+    event payoutReceived(address indexed _market, address indexed _user, uint256 _amount);
+    
     
     
     modifier checkState(State _state)
@@ -68,8 +71,10 @@ contract EIP1167_Question
             winningOptionId = formulas.calcWinningOption(reportingOptionBalances);
             (bettingRightOptionBalance, bettingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, bettingOptionBalances);
             (reportingRightOptionBalance, reportingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, reportingOptionBalances);
+            //reportingPool = reportingPool.add(validationPool); //This statement is unecessary
         }
         
+        emit phaseChange(address(this), currState);
         _;
     }
     
@@ -171,10 +176,13 @@ contract EIP1167_Question
     function stakeForReporting(uint256 _optionId) external payable checkState(State.REPORTING)
     {
         require(!hasVoted[msg.sender] && !hasStaked[msg.sender], "Sorry, you have already staked/voted!");
-        reportingPool = reportingPool.add(msg.value);
+        //reportingPool = reportingPool.add(msg.value);
+        validationPool = validationPool.add(msg.value);
         reportingOptionBalances[_optionId] = reportingOptionBalances[_optionId].add(msg.value);
         stakeDetails[msg.sender][_optionId] = msg.value;
         hasStaked[msg.sender] = true;
+        
+        emit staked(address(this), msg.sender, _optionId, msg.value);
     }
     
     function redeemBettingPayout() external payable changeState checkState(State.RESOLVED)
@@ -189,6 +197,8 @@ contract EIP1167_Question
         marketPool = marketPool.sub(amount);
         address payable receiver = msg.sender;
         require(receiver.send(amount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
+        
+        emit payoutReceived(address(this), msg.sender, amount);
     }
     
     function redeemStakedPayout() external changeState checkState(State.RESOLVED)
@@ -197,12 +207,14 @@ contract EIP1167_Question
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You staked on the wrong option !");
         assert(validationPool > 0); // validationPool can't be empty if the code reaches here !
         
-        uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], reportingRightOptionBalance, reportingWrongOptionsBalance);
+        uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], reportingRightOptionBalance, reportingWrongOptionsBalance.add(validationPool));
         hasStaked[msg.sender] = false;
         stakeDetails[msg.sender][winningOptionId] = 0;
         validationPool = validationPool.sub(amount);
         address payable receiver = msg.sender;
         require(receiver.send(amount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
+        
+        emit payoutReceived(address(this), msg.sender, amount);
     }
     
     function redeemMarketMakerPayout() external changeState checkState(State.RESOLVED) onlyOwner
@@ -211,6 +223,8 @@ contract EIP1167_Question
         uint256 amount = marketMakerPool;
         marketMakerPool = 0;
         require(owner.send(amount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
+        
+        emit payoutReceived(address(this), msg.sender, amount);
     }
     
 }
