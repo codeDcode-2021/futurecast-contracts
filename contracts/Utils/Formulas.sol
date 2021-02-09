@@ -3,6 +3,7 @@ pragma solidity >=0.7.0 <0.8.0;
 pragma abicoder v2;
 
 import { SafeMath } from "./SafeMath.sol";
+import "./console.sol";
 
 /***
  * @author codeDcode member Chinmay Vemuri
@@ -39,33 +40,27 @@ contract Formulas
          * @dev Should return a value such that value/1000 is the real percentage
          * Check for rounding errors
          */
-        
-        uint256 T = _endTime.sub(_startTime);
-        uint256 t = _endTime.sub(_currTime);
-        T = T.div(86400);
-        t = t.div(86400);
+
+        uint256 fee = 0;
+        uint256 T = (_endTime - _startTime)/86400;
+        uint256 t = (_currTime - _startTime)/86400;
         assert(t>0 && T>0 && t<T);
 
-        t = 8; // just for testing purpose
-
-        uint256 calFactor = 10**3;
-
-        uint256 nmin = 0;
-        uint256 nmax = T;
-
-        uint256 fmin = calFactor.mul(1);
-        uint256 fmax = calFactor.mul(100);
+        // return 0;
         
-        uint256 f1 = t.sub(nmin);
-        uint256 f2 = nmax.sub(nmin);
-        uint256 f3 = t.mul(fmax.sub(fmin));
+        uint256 calFactor = 10**10; // Final scaling factor is calFactor^2
         
-        t = calFactor.mul(f1.div(f2));
-        t = fmin.add(f3);
+        uint256 nmin = 0;                   // Func min value
+        uint256 nmax = T**5;                // Func max value
+        fee = (calFactor*(t**5-nmin))/(nmax-nmin);
 
-        assert(t>nmin && t<nmax);
+        uint256 fmin = 500000;              // Fee range min
+        uint256 fmax = 100000000;           // Fee range max
+        fee = fmin + ((fmax-fmin)*fee)/calFactor;
         
-        return t;
+        assert(fee>fmin && fee<fmax);
+
+        return fee;
     }
     
     function calcWinningOption(uint256[] calldata _reportingOptionBalances) external pure returns(uint256)
