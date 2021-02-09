@@ -63,6 +63,8 @@ contract EIP1167_Question
         if(currState == State.BETTING && block.timestamp >= endTime)
         {
             currState = State.REPORTING;
+            
+            emit phaseChange(address(this), currState);
         }
         
         else if(currState == State.REPORTING && block.timestamp >= endTime + 2 days)
@@ -72,9 +74,11 @@ contract EIP1167_Question
             (bettingRightOptionBalance, bettingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, bettingOptionBalances);
             (reportingRightOptionBalance, reportingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, reportingOptionBalances);
             //reportingPool = reportingPool.add(validationPool); //This statement is unecessary
+            
+            emit phaseChange(address(this), currState);
         }
         
-        emit phaseChange(address(this), currState);
+        
         _;
     }
     
