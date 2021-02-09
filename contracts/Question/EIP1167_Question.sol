@@ -15,7 +15,7 @@ contract EIP1167_Question
     
     State private currState;
     address payable public owner;
-    string public question;
+    string public description;
     string[] public options;
     uint256[] public bettingOptionBalances;
     uint256[] public reportingOptionBalances;
@@ -96,14 +96,14 @@ contract EIP1167_Question
     }
     
     
-    function init(address _owner, string calldata _question, string[] memory _options, uint256 _endTime) external
+    function init(address _owner, string calldata _description, string[] memory _options, uint256 _endTime) external
     {
         /***
          * @dev Function for creating a market
          */
         require(!marketInitialized, "Can't change the market parameters once initialized !");
         owner = payable(_owner);
-        question = _question;
+        description = _description;
         options = _options;
         startTime = block.timestamp;
         endTime = _endTime;
@@ -231,4 +231,7 @@ contract EIP1167_Question
         emit payoutReceived(address(this), msg.sender, amount);
     }
     
+    function giveOptions() public view returns (string[] memory) {
+        return options;
+    }
 }
