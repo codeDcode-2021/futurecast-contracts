@@ -42,21 +42,41 @@ contract Formulas
          */
 
         uint256 fee = 0;
-        uint256 T = (_endTime - _startTime)/86400;
-        uint256 t = (_currTime - _startTime)/86400;
-        assert(t>0 && T>0 && t<T);
+        uint256 calFactor = 10**10; // No scaling factors as this factor is neutralized later
 
-        // return 0;
+        // uint256 T = (_endTime - _startTime)/86400;
+        uint256 T = SafeMath.div(SafeMath.sub(_endTime, _startTime), 86400);
+        // uint256 t = (_currTime - _startTime)/86400;
+        uint256 t = SafeMath.div(SafeMath.sub(_currTime, _startTime), 86400);
+
+        assert(t>0 && T>0 && t<T);
         
-        uint256 calFactor = 10**10; // Final scaling factor is calFactor^2
         
         uint256 nmin = 0;                   // Func min value
         uint256 nmax = T**5;                // Func max value
-        fee = (calFactor*(t**5-nmin))/(nmax-nmin);
+        // fee = (calFactor*(t**5-nmin))/(nmax-nmin);
+        fee = SafeMath.div(
+            SafeMath.mul(
+                calFactor, 
+                SafeMath.sub(t**5, nmin)
+            ), 
+            SafeMath.sub(nmax, nmin)
+        );
 
         uint256 fmin = 500000;              // Fee range min
         uint256 fmax = 100000000;           // Fee range max
-        fee = fmin + ((fmax-fmin)*fee)/calFactor;
+        // fee = fmin + ((fmax-fmin)*fee)/calFactor; // calFactor neutralized here
+        fee = SafeMath.add(
+            fmin,
+            SafeMath.div(
+                SafeMath.mul(
+                    SafeMath.sub(fmax, fmin),
+                    fee
+                ),
+                calFactor
+            )
+        ); // calFactor neutralized here
+        
         
         assert(fee>fmin && fee<fmax);
 
