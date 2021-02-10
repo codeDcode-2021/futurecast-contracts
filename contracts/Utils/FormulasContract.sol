@@ -11,12 +11,12 @@ import "./console.sol";
  * @dev Here, fees are represented in basis points. 1bp = 1/100 percent = 0.01%
  */
  
-library Formulas
+contract Formulas
 {
     
     using SafeMath for uint256;
     
-    function calcMarketMakerFee(uint256 _marketMakerFeePer, uint256 _amount) internal pure returns(uint256)
+    function calcMarketMakerFee(uint256 _marketMakerFeePer, uint256 _amount) external pure returns(uint256)
     {
         /// @dev Check for overflows. Theoretically, they shouldn't occur here since _amount is in wei and is usually much greater than 10**4.
         /// @dev Since the _amount is in weis, decimals can be ignored as they don't have a lot of value. This functions rounds towards 0.
@@ -25,13 +25,13 @@ library Formulas
         return _marketMakerFeePer*_amount/10**4;
     }
 
-    function calcValidationFee(uint256 _marketMakerFeePer, uint256 _validationFeePer, uint256 _amount) internal pure returns(uint256)
+    function calcValidationFee(uint256 _marketMakerFeePer, uint256 _validationFeePer, uint256 _amount) external pure returns(uint256)
     {
         require((_validationFeePer.sub(_marketMakerFeePer))*_amount > 10**4, "Amount is too small !");
         return ((_validationFeePer.sub(_marketMakerFeePer))*_amount)/10**4;
     }
 
-    function calcRightWrongOptionsBalances(uint256 _rightOption, uint256[] memory _optionBalances) internal pure returns(uint256, uint256)
+    function calcRightWrongOptionsBalances(uint256 _rightOption, uint256[] memory _optionBalances) external pure returns(uint256, uint256)
     {
         uint256 _wrongOptionsBalance = 0;
         uint256 _rightOptionBalance = 0;
@@ -41,7 +41,7 @@ library Formulas
         return (_rightOptionBalance, _wrongOptionsBalance);
     }
     
-    function calcPayout(uint256 _userStake, uint256 _rightOptionBalance, uint256 _wrongOptionsBalance) internal pure returns(uint256)
+    function calcPayout(uint256 _userStake, uint256 _rightOptionBalance, uint256 _wrongOptionsBalance) external pure returns(uint256)
     {
         // uint256 payout = 0;
         /// @dev payout = userStake + (userStake*_wrongOptionsBalance/_rightOptionBalance);
@@ -51,7 +51,7 @@ library Formulas
         return _userStake.add(_userStake.mul(_wrongOptionsBalance.div(_rightOptionBalance)));
     }
     
-    function calcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) internal pure returns(uint256)
+    function calcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) external pure returns(uint256)
     {
         /***
          * @dev Should return a value such that value/1000000 is the real percentage
@@ -105,7 +105,7 @@ library Formulas
         return fee;
     }
     
-    function calcWinningOption(uint256[] calldata _reportingOptionBalances) internal pure returns(uint256)
+    function calcWinningOption(uint256[] memory _reportingOptionBalances) external pure returns(uint256)
     {
         uint256 maxAmount = 0;
         uint256 optionId = _reportingOptionBalances.length - 1; // By default it is invalid

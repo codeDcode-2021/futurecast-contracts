@@ -4,13 +4,15 @@ pragma abicoder v2;
 
 import "../Utils/console.sol";
 import { SafeMath } from "../Utils/SafeMath.sol";
-import "../Utils/Formulas.sol";
+import { Formulas } from "../Utils/Formulas.sol";
 
 contract EIP1167_Question 
 {
     using SafeMath for uint256;
+    using Formulas for uint256;
     
-    Formulas formulas;
+    // Formulas formulas;
+    
     enum State {BETTING, REPORTING, RESOLVED}
     
     State private currState;
@@ -30,7 +32,7 @@ contract EIP1167_Question
     uint256 public marketPool;
     uint256 public validationPool;
     // uint256 public reportingPool; //Not necessary
-    uint256 constant public MARKET_MAKER_FEE_PER = 995; // 0.5% for now.
+    uint256 constant public MARKET_MAKER_FEE_PER = 50; // 0.5% for now. Represented in bp format
     uint256 public winningOptionId;
     bool marketInitialized;
     
@@ -70,9 +72,16 @@ contract EIP1167_Question
         else if(currState == State.REPORTING && block.timestamp >= endTime + 2 days)
         {
             currState = State.RESOLVED;
-            winningOptionId = formulas.calcWinningOption(reportingOptionBalances);
-            (bettingRightOptionBalance, bettingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, bettingOptionBalances);
-            (reportingRightOptionBalance, reportingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, reportingOptionBalances);
+            
+            // winningOptionId = formulas.calcWinningOption(reportingOptionBalances);
+            // (bettingRightOptionBalance, bettingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, bettingOptionBalances);
+            // (reportingRightOptionBalance, reportingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, reportingOptionBalances);
+            
+            // Library implementation
+            winningOptionId = calcWinningOption(reportingOptionBalances); 
+            (bettingRightOptionBalance, bettingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(bettingOptionBalances);
+            (reportingRightOptionBalance, reportingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(reportingOptionBalances);
+            
             //reportingPool = reportingPool.add(validationPool); //This statement is unecessary
             
             emit phaseChange(address(this), currState);
@@ -118,10 +127,29 @@ contract EIP1167_Question
             reportingOptionBalances.push(0);
         }
         
-        formulas = new Formulas();
+        // formulas = new Formulas();
         // Code for testing purpose
         console.log("Address of this contract is %s", address(this));
         console.log("Owner of this contract is %s", owner);
+    }
+    
+    function calcWinningOption(uint256[] memory _reportingOptionBalances) internal pure returns(uint256)
+    {
+        uint256 maxAmount;
+        uint256 optionId = _reportingOptionBalances.length - 1; // By default it is invalid
+        
+        for(uint8 i = 0; i < _reportingOptionBalances.length; ++i)
+        {
+            uint256 optionAmount = _reportingOptionBalances[i];
+            
+            if( optionAmount > maxAmount)
+            {
+                maxAmount = optionAmount;
+                optionId = i;
+            }
+        }
+        
+        return optionId;
     }
     
     function getMarketBalance() external view returns (uint256)
@@ -129,7 +157,7 @@ contract EIP1167_Question
         return address(this).balance;
     }
     
-    function stake(uint256 _optionId) external payable changeState checkState(State.BETTING) validOption(_optionId) returns (uint256[] memory)
+    function stake(uint256 _optionId) external payable changeState checkState(State.BETTING) validOption(_optionId)
     {
         /***
          * @TODO
@@ -144,22 +172,24 @@ contract EIP1167_Question
         hasVoted[msg.sender] = true;
         uint256 amount = msg.value;
 
-        //return [block.timestamp, startTime, endTime];
-
-        formulas.calcValidationFeePer(block.timestamp, startTime, endTime);
-        uint256 validationFeePer = 30;
+        // uint256 validationFeePer = formulas.calcValidationFeePer(block.timestamp, startTime, endTime);
         // uint256 marketMakerFee = formulas.calcMarketMakerFee(MARKET_MAKER_FEE_PER, amount);
-         uint256 validationFee = formulas.calcValidationFee(MARKET_MAKER_FEE_PER, validationFeePer, amount);
-        // uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
-        // uint256 optionStakeAmount = stakeDetails[msg.sender][_optionId];
-        // marketMakerPool = marketMakerPool.add(marketMakerFee);
-        // validationPool = validationPool.add(validationFee);
-        // marketPool = marketPool.add(stakeAmount);
+        // uint256 validationFee = formulas.calcValidationFee(MARKET_MAKER_FEE_PER, validationFeePer, amount);
+        
+        // Library implementation.
+        uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, endTime);
+        uint256 marketMakerFee = MARKET_MAKER_FEE_PER.calcMarketMakerFee(amount);
+        uint256 validationFee = MARKET_MAKER_FEE_PER.calcValidationFee(validationFeePer, amount);
+        uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
+        uint256 optionStakeAmount = stakeDetails[msg.sender][_optionId];
+        marketMakerPool = marketMakerPool.add(marketMakerFee);
+        validationPool = validationPool.add(validationFee);
+        marketPool = marketPool.add(stakeAmount);
         
         // // console.log("Amount staked is: %d", stakeAmount);
-        // stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
+        stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
         
-        // emit staked(address(this), msg.sender, _optionId, msg.value);
+        emit staked(address(this), msg.sender, _optionId, msg.value);
     }
     
     
@@ -201,7 +231,10 @@ contract EIP1167_Question
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You lost your stake as you didn't predict the answer correctly !");
         assert(marketPool > 0); // marketPool can't be empty if the code reaches here !
         
-        uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], bettingRightOptionBalance, bettingWrongOptionsBalance);
+        // uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], bettingRightOptionBalance, bettingWrongOptionsBalance);
+        
+        // Library implementation.
+        uint256 amount = stakeDetails[msg.sender][winningOptionId].calcPayout(bettingRightOptionBalance, bettingWrongOptionsBalance);
         hasVoted[msg.sender] = false;
         stakeDetails[msg.sender][winningOptionId] = 0;
         marketPool = marketPool.sub(amount);
@@ -217,7 +250,10 @@ contract EIP1167_Question
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You staked on the wrong option !");
         assert(validationPool > 0); // validationPool can't be empty if the code reaches here !
         
-        uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], reportingRightOptionBalance, reportingWrongOptionsBalance.add(validationPool));
+        // uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], reportingRightOptionBalance, reportingWrongOptionsBalance.add(validationPool));
+        
+        // Library implementation.
+        uint256 amount = stakeDetails[msg.sender][winningOptionId].calcPayout(reportingRightOptionBalance, reportingWrongOptionsBalance.add(validationPool));
         hasStaked[msg.sender] = false;
         stakeDetails[msg.sender][winningOptionId] = 0;
         validationPool = validationPool.sub(amount);
@@ -237,7 +273,8 @@ contract EIP1167_Question
         emit payoutReceived(address(this), msg.sender, amount);
     }
     
-    function giveOptions() public view returns (string[] memory) {
+    function giveOptions() public view returns (string[] memory) 
+    {
         return options;
     }
 }
