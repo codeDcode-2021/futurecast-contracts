@@ -62,7 +62,7 @@ contract Formulas
         uint256 t = (_currTime - _startTime)/86400;
         // uint256 t = SafeMath.div(SafeMath.sub(_currTime, _startTime), 86400);
 
-        assert(t>0 && T>0 && t<T);
+        assert(t>=0 && T>0 && t<=T);
         
         
         uint256 nmin = 0;                   // Func min value
@@ -91,7 +91,7 @@ contract Formulas
         // ); // calFactor neutralized here
         
         
-        assert(fee>fmin && fee<fmax);
+        assert(fee>=fmin && fee<=fmax);
 
         return fee;
     }

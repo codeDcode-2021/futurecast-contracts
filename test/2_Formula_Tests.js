@@ -45,10 +45,19 @@ describe("Formula", () => {
 		endTime = lib.toUnix("12/01/2021 00:00:00")
 
 
-		for(let i = 2; i<=11; i++){
+    currentTime = lib.toUnix("01/01/2021 00:00:05")
+    ans = await formula.calcValidationFee(currentTime, startTime, endTime).call();
+    console.log('At month 0:', 'fee: ', ans/10**6);
+		
+    for(let i = 2; i<=11; i++){
 			currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
 			ans = await formula.calcValidationFee(currentTime, startTime, endTime).call();
 			console.log('At month ', i, 'fee: ', ans/10**6);
 		}
+
+    currentTime = lib.toUnix("11/30/2021 23:23:59")
+    ans = await formula.calcValidationFee(currentTime, startTime, endTime).call();
+    console.log('At month 12:', 'fee: ', ans/10**6);
+		
 	});
 });
