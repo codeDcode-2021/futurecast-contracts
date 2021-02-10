@@ -144,7 +144,7 @@ contract EIP1167_Question
         hasVoted[msg.sender] = true;
         uint256 amount = msg.value;
 
-        return [block.timestamp, startTime, endTime];
+        //return [block.timestamp, startTime, endTime];
 
         formulas.calcValidationFeePer(block.timestamp, startTime, endTime);
         uint256 validationFeePer = 30;
