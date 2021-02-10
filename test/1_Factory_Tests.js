@@ -2,7 +2,7 @@ const assert = require("assert");
 const maxGas = 10000000;
 const optionSettings = {
   a: 10,
-  default_balance_ether: 10,
+  default_balance_ether: 100,
   gasLimit: maxGas,
   callGasLimit: maxGas,
 };
@@ -83,20 +83,25 @@ describe("Factory/Question Contract", () => {
     }
   });
 
-  // it("allows users to vote.", async () => {
-  //   let description = "Who will win World Cup 2030";
-  //   let options = ["India", "Australia"];
-  //   let endTime = "12/31/2030 05:05:05";
+  it("allows users to vote.", async () => {
+    let description = "Who will win World Cup 2030";
+    let options = ["India", "Australia"];
+    let endTime = "12/31/2030 05:05:05";
 
-  //   await factory
-  //     .createQuestion(description, options, lib.toUnix(endTime))
-  //     .send({ from: owner, gas: maxGas });
+    await factory
+      .createQuestion(description, options, lib.toUnix(endTime))
+      .send({ from: owner, gas: maxGas });
 
-  //   let deployedQuestionAddress = await factory.questionAddresses(0).call();
-  //   question = await questionInstance(deployedQuestionAddress);
+    let deployedQuestionAddress = await factory.questionAddresses(0).call();
+    question = await questionInstance(deployedQuestionAddress);
 
-  //   await question.vote(0).send({ from: user, value: toWei("1") });
-  // });
+    
+    await question.stake(0).send({ 
+      from: user, 
+      value: toWei("10"),
+      gas: maxGas
+    });
+  });
 
   // it("does not allow voting twice.", async () => {
   //   // TODO:

@@ -91,7 +91,7 @@ contract EIP1167_Question
     modifier validOption(uint256 _optionId)
     {
         /// @dev _optionId represents the index of the option.
-        require(_optionId >= 0 && _optionId < options.length);
+        require(_optionId >= 0 && _optionId < options.length, "Invalid option selected");
         _;
     }
     
@@ -120,8 +120,8 @@ contract EIP1167_Question
         
         formulas = new Formulas();
         // Code for testing purpose
-        // console.log("Address of this contract is %s", address(this));
-        // console.log("Owner of this contract is %s", owner);
+        console.log("Address of this contract is %s", address(this));
+        console.log("Owner of this contract is %s", owner);
     }
     
     function getMarketBalance() external view returns (uint256)
@@ -129,7 +129,7 @@ contract EIP1167_Question
         return address(this).balance;
     }
     
-    function stake(uint256 _optionId) external payable changeState checkState(State.BETTING) validOption(_optionId)
+    function stake(uint256 _optionId) external payable changeState checkState(State.BETTING) validOption(_optionId) returns (uint256[] memory)
     {
         /***
          * @TODO
@@ -140,20 +140,26 @@ contract EIP1167_Question
          * Uncomment the lines in this function after importing validationFee code.
          * Check for gas costs.
          */
+        //console.log("Function start.");
         hasVoted[msg.sender] = true;
         uint256 amount = msg.value;
-        uint256 validationFeePer = formulas.calcValidationFeePer(block.timestamp, startTime, endTime);
-        uint256 marketMakerFee = formulas.calcMarketMakerFee(MARKET_MAKER_FEE_PER, amount);
-        uint256 validationFee = formulas.calcValidationFee(MARKET_MAKER_FEE_PER, validationFeePer, amount);
-        uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
-        uint256 optionStakeAmount = stakeDetails[msg.sender][_optionId];
-        marketMakerPool = marketMakerPool.add(marketMakerFee);
-        validationPool = validationPool.add(validationFee);
-        marketPool = marketPool.add(stakeAmount);
+
+        return [block.timestamp, startTime, endTime];
+
+        formulas.calcValidationFeePer(block.timestamp, startTime, endTime);
+        uint256 validationFeePer = 30;
+        // uint256 marketMakerFee = formulas.calcMarketMakerFee(MARKET_MAKER_FEE_PER, amount);
+         uint256 validationFee = formulas.calcValidationFee(MARKET_MAKER_FEE_PER, validationFeePer, amount);
+        // uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
+        // uint256 optionStakeAmount = stakeDetails[msg.sender][_optionId];
+        // marketMakerPool = marketMakerPool.add(marketMakerFee);
+        // validationPool = validationPool.add(validationFee);
+        // marketPool = marketPool.add(stakeAmount);
         
-        stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
+        // // console.log("Amount staked is: %d", stakeAmount);
+        // stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
         
-        emit staked(address(this), msg.sender, _optionId, msg.value);
+        // emit staked(address(this), msg.sender, _optionId, msg.value);
     }
     
     

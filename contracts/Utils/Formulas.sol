@@ -23,6 +23,7 @@ contract Formulas
     function calcValidationFee(uint256 _marketMakerFeePer, uint256 _validationFeePer, uint256 _amount) external pure returns(uint256)
     {
         return _amount.sub((_validationFeePer.sub(_marketMakerFeePer))*_amount/1000);
+        // amount = amount - (validationFeePer - marketMakerFeePer)*amount/1000;
     }
 
     function calcRightWrongOptionsBalances(uint256 _rightOption, uint256[] calldata _optionBalances) external pure returns(uint256, uint256)
@@ -47,45 +48,47 @@ contract Formulas
     function calcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) external pure returns(uint256)
     {
         /***
-         * @dev Should return a value such that value/1000 is the real percentage
+         * @dev Should return a value such that value/1000000 is the real percentage
          * Check for rounding errors
          */
+
+        //console.log(_currTime, _startTime, _endTime);
 
         uint256 fee = 0;
         uint256 calFactor = 10**10; // No scaling factors as this factor is neutralized later
 
-        // uint256 T = (_endTime - _startTime)/86400;
-        uint256 T = SafeMath.div(SafeMath.sub(_endTime, _startTime), 86400);
-        // uint256 t = (_currTime - _startTime)/86400;
-        uint256 t = SafeMath.div(SafeMath.sub(_currTime, _startTime), 86400);
+        uint256 T = (_endTime - _startTime)/86400;
+        // uint256 T = SafeMath.div(SafeMath.sub(_endTime, _startTime), 86400);
+        uint256 t = (_currTime - _startTime)/86400;
+        // uint256 t = SafeMath.div(SafeMath.sub(_currTime, _startTime), 86400);
 
         assert(t>0 && T>0 && t<T);
         
         
         uint256 nmin = 0;                   // Func min value
         uint256 nmax = T**5;                // Func max value
-        // fee = (calFactor*(t**5-nmin))/(nmax-nmin);
-        fee = SafeMath.div(
-            SafeMath.mul(
-                calFactor, 
-                SafeMath.sub(t**5, nmin)
-            ), 
-            SafeMath.sub(nmax, nmin)
-        );
+        fee = (calFactor*(t**5-nmin))/(nmax-nmin);
+        // fee = SafeMath.div(
+        //     SafeMath.mul(
+        //         calFactor, 
+        //         SafeMath.sub(t**5, nmin)
+        //     ), 
+        //     SafeMath.sub(nmax, nmin)
+        // );
 
         uint256 fmin = 500000;              // Fee range min
         uint256 fmax = 100000000;           // Fee range max
-        // fee = fmin + ((fmax-fmin)*fee)/calFactor; // calFactor neutralized here
-        fee = SafeMath.add(
-            fmin,
-            SafeMath.div(
-                SafeMath.mul(
-                    SafeMath.sub(fmax, fmin),
-                    fee
-                ),
-                calFactor
-            )
-        ); // calFactor neutralized here
+        fee = fmin + ((fmax-fmin)*fee)/calFactor; // calFactor neutralized here
+        // fee = SafeMath.add(
+        //     fmin,
+        //     SafeMath.div(
+        //         SafeMath.mul(
+        //             SafeMath.sub(fmax, fmin),
+        //             fee
+        //         ),
+        //         calFactor
+        //     )
+        // ); // calFactor neutralized here
         
         
         assert(fee>fmin && fee<fmax);
