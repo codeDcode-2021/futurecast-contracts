@@ -277,4 +277,10 @@ contract EIP1167_Question
     {
         return options;
     }
+
+
+
+    function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
+        return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
+    }
 }
