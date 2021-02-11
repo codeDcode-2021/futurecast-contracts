@@ -24,6 +24,8 @@ const questionInstance = async (deployedAddress) => {
 let factory;
 let question;
 let accounts, admin, owner, user;
+let description, options, endTime;
+
 
 const toEth = (inWei) => web3.utils.fromWei(inWei, "ether");
 const toWei = (inEth) => web3.utils.toWei(inEth, "ether");
@@ -39,39 +41,27 @@ beforeEach(async () => {
       data: compiledFactory.bytecode,
     })
     .send({ from: admin, gas: maxGas });
-
   factory = factoryInstance.methods;
+
+  description = "Who will win World Cup 2030";
+  options = ["India", "Australia"];
+  endTime = "12/31/2030 05:05:05";
+
+  await factory
+    .createQuestion(description, options, lib.toUnix(endTime))
+    .send({ from: owner, gas: maxGas });
+
+  let deployedQuestionAddress = await factory.questionAddresses(0).call();
+  question = await questionInstance(deployedQuestionAddress);
 });
 
 describe("Factory/Question Contract", () => {
   it("is setting the owner correctly.", async () => {
-    await factory
-      .createQuestion(
-        "Who do we think we are?",
-        ["Humans", "Animals"],
-        lib.toUnix("01/01/2029 00:00:00")
-      )
-      .send({ from: owner, gas: maxGas });
-    let deployedQuestionAddress = await factory.questionAddresses(0).call();
-
-    question = await questionInstance(deployedQuestionAddress);
-
     let _owner = await question.owner().call();
     assert.strictEqual(_owner, owner);
   });
 
   it("is setting the basic information[description, options, endTime] correctly.", async () => {
-    let description = "Who will win World Cup 2030";
-    let options = ["India", "Australia"];
-    let endTime = "12/31/2030 05:05:05";
-
-    await factory
-      .createQuestion(description, options, lib.toUnix(endTime))
-      .send({ from: owner, gas: maxGas });
-
-    let deployedQuestionAddress = await factory.questionAddresses(0).call();
-    question = await questionInstance(deployedQuestionAddress);
-
     let _description = await question.description().call();
     let _options = await question.giveOptions().call();
     let _endTime = await question.endTime().call();
@@ -83,22 +73,9 @@ describe("Factory/Question Contract", () => {
     }
   });
 
-  it("allows users to stake.", async () => {
-    let description = "Who will win World Cup 2030";
-    let options = ["India", "Australia"];
-    let endTime = "12/31/2030 05:05:05";
-
-    await factory
-      .createQuestion(description, options, lib.toUnix(endTime))
-      .send({ from: owner, gas: maxGas });
-
-    let deployedQuestionAddress = await factory.questionAddresses(0).call();
-    question = await questionInstance(deployedQuestionAddress);
-
-    
-    
+  it("allows users to stake multiple times.", async () => {    
     tx = await question.stake(1).send({gas:maxGas, from: user, value: toWei("100")});
-    console.log(tx.gasUsed);  
+    console.log('Gas used: ', tx.gasUsed);
 
     val = await question.marketMakerPool().call()
     console.log('MarketMakerPool: ', toEth(val))
@@ -108,36 +85,22 @@ describe("Factory/Question Contract", () => {
     console.log('TotalMarketPoo: ', toEth(val))
   });
 
-
-  /* 
-  it('computes validation fee correctly.', async()=>{
-    await factory
-    .createQuestion(
-      "Who do we think we are?",
-      ["Humans", "Animals"],
-      lib.toUnix("01/01/2029 00:00:00")
-      )
-      .send({ from: owner, gas: maxGas });
-      let deployedQuestionAddress = await factory.questionAddresses(0).call();
-      
-      question = await questionInstance(deployedQuestionAddress);
-      
-      startTime = lib.toUnix("01/01/2021 00:00:00")
-      endTime = lib.toUnix("12/01/2021 00:00:00")
-      currentTime = lib.toUnix("01/01/2021 00:00:05")
+  it('computes validation fee correctly.', async()=>{  
+    startTime = lib.toUnix("01/01/2021 00:00:00")
+    endTime = lib.toUnix("12/01/2021 00:00:00")
+    currentTime = lib.toUnix("01/01/2021 00:00:05")
+    ans = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+    console.log('At month 0:', 'fee: ', ans/100);
+    
+    for(let i = 2; i<=11; i++){
+      currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
       ans = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-      console.log('At month 0:', 'fee: ', ans/100);
-      
-      for(let i = 2; i<=11; i++){
-        currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
-        ans = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-        console.log('At month ', i, 'fee: ', ans/100);
-      }
-      
-      currentTime = lib.toUnix("11/30/2021 23:23:59")
-      ans = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-      console.log('At month 12:', 'fee: ', ans/100);
-    });
-    */
+      console.log('At month ', i, 'fee: ', ans/100);
+    }
+    
+    currentTime = lib.toUnix("11/30/2021 23:23:59")
+    ans = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+    console.log('At month 12:', 'fee: ', ans/100);
   });
+});
   
