@@ -99,11 +99,15 @@ describe("Factory/Question Contract", () => {
     
     tx = await question.stake(1).send({gas:maxGas, from: user, value: toWei("100")});
     console.log(tx.gasUsed);  
-    tx = await question.stake(1).send({gas:maxGas, from: user, value: toWei("100")});
-    console.log(tx.gasUsed); 
-    tx = await question.stake(1).send({gas:maxGas, from: user, value: toWei("100")});
-    console.log(tx.gasUsed);
+
+    val = await question.marketMakerPool().call()
+    console.log('MarketMakerPool: ', toEth(val))
+    val = await question.validationPool().call()
+    console.log('ValidationFeePool: ', toEth(val))
+    val = await question.marketPool().call()
+    console.log('TotalMarketPoo: ', toEth(val))
   });
+
 
   /* 
   it('computes validation fee correctly.', async()=>{
