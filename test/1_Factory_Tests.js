@@ -1,11 +1,12 @@
 const assert = require("assert");
-const maxGas = 10000000;
+const maxGas = 10**6;
 const optionSettings = {
+  debug: true,
   total_accounts: 100,
   default_balance_ether: 1000,
   gasLimit: maxGas,
+  gasPrice: maxGas,
   callGasLimit: maxGas,
-  debug: true
 };
 
 const ganache = require("ganache-cli");
@@ -49,7 +50,7 @@ beforeEach(async () => {
     .deploy({
       data: compiledFactory.bytecode,
     })
-    .send({ from: admin, gas: maxGas });
+    .send({ from: admin});
   factory = factoryInstance.methods;
 
   description = "Who will win World Cup 2030";
@@ -58,7 +59,7 @@ beforeEach(async () => {
 
   tx = await factory
     .createQuestion(description, options, lib.toUnix(endTime))
-    .send({ from: owner, gas: maxGas });
+    .send({ from: owner});
   // console.log('Amount to deploy: ', tx.gasUsed)
 
 
@@ -163,7 +164,7 @@ describe("Factory/Question Contract", () => {
       console.log('Validator reward: ', i, ': ', toEth(finBalance - initBalance));
     }
     
-    
+
     // Owner redeem
     initBalance = await web3.eth.getBalance(owner);
     await question.redeemMarketMakerPayout().send({from: owner,gas: maxGas});
