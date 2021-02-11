@@ -31,6 +31,7 @@ contract EIP1167_Question
     uint256 public marketMakerPool;
     uint256 public marketPool;
     uint256 public validationPool;
+    uint256 public stakeChangePool;
     // uint256 public reportingPool; //Not necessary
     uint256 constant public MARKET_MAKER_FEE_PER = 100; // 1% for now. Represented in bp format
     uint256 public winningOptionId;
@@ -100,7 +101,7 @@ contract EIP1167_Question
     modifier validOption(uint256 _optionId)
     {
         /// @dev _optionId represents the index of the option.
-        require(_optionId >= 0 && _optionId < options.length, "Invalid option selected");
+        require(_optionId >= 0 && _optionId <= options.length, "Invalid option selected");
         _;
     }
     
@@ -169,6 +170,8 @@ contract EIP1167_Question
          * Check for gas costs.
          */
         //console.log("Function start.");
+        require(msg.value >10**4, "Invalid amount to stake.");
+
         hasVoted[msg.sender] = true;
         uint256 amount = msg.value;
 
@@ -199,17 +202,21 @@ contract EIP1167_Question
     {
         /***
          * @notice This function allows the user to change the stake from one option to another option.
-         * @dev Discuss whether stake change must be taxed by market maker. The code for this case has not been written.
+         * @dev 1% is being deducted from _amount.
          */
         //require(block.timestamp >= endTime, "Sorry, the betting phase has been completed !");
-        require(hasVoted[msg.sender], "You haven't voted before !");
+        
+        require(hasVoted[msg.sender], "You haven't voted before!");
         require(stakeDetails[msg.sender][_fromOptionId] >= _amount, "Stake change amount is higher than the staked amount !");
         require(_fromOptionId != _toOptionId, "Options are the same !");
-        require(_amount > 0, "Insufficient stake change amount"); // Is this required ?
-    
+        require(_amount > 100, "Insufficient stake change amount"); // Is this required ?
+
         uint256 fromOptionStakedAmount = stakeDetails[msg.sender][_fromOptionId];
         uint256 toOptionStakedAmount = stakeDetails[msg.sender][_toOptionId];
+        stakeChangePool = stakeChangePool.add(_amount.div(100));
+
         stakeDetails[msg.sender][_fromOptionId] = fromOptionStakedAmount.sub(_amount);
+        _amount = _amount.sub(_amount.div(100));
         stakeDetails[msg.sender][_toOptionId] = toOptionStakedAmount.add(_amount);
         
         emit stakeChanged(address(this), msg.sender, _fromOptionId, _toOptionId, _amount);
@@ -236,7 +243,7 @@ contract EIP1167_Question
         // uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], bettingRightOptionBalance, bettingWrongOptionsBalance);
         
         // Library implementation.
-        uint256 amount = stakeDetails[msg.sender][winningOptionId].calcPayout(bettingRightOptionBalance, bettingWrongOptionsBalance);
+        uint256 amount = stakeDetails[msg.sender][winningOptionId].calcPayout(bettingRightOptionBalance, bettingWrongOptionsBalance.add(stakeChangePool));
         hasVoted[msg.sender] = false;
         stakeDetails[msg.sender][winningOptionId] = 0;
         marketPool = marketPool.sub(amount);

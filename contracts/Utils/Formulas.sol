@@ -41,14 +41,26 @@ library Formulas
         return (_rightOptionBalance, _wrongOptionsBalance);
     }
     
-    function calcPayout(uint256 _userStake, uint256 _rightOptionBalance, uint256 _wrongOptionsBalance) internal pure returns(uint256)
+    function calcPayout(
+        uint256 _userStakeOnRightOption, 
+        uint256 _rightOptionBalance, 
+        uint256 _wrongOptionsBalance) internal pure returns(uint256)
     {
+        // mapping: this user, B=>7.5, right = 1000, wrong 20
+        // extraBalance:
+        // rightOption += wrongBalance 
+        
+
         // uint256 payout = 0;
         /// @dev payout = userStake + (userStake*_wrongOptionsBalance/_rightOptionBalance);
         /// @dev Decimals are not required here too if we consider _userStake in wei.
         // payout = payout.add(_userStake.add(_userStake.mul(_wrongOptionsBalance.div(_rightOptionBalance))));
         
-        return _userStake.add(_userStake.mul(_wrongOptionsBalance.div(_rightOptionBalance)));
+        
+
+        return _userStakeOnRightOption.add(
+            (_userStakeOnRightOption.mul(
+                _wrongOptionsBalance)).div(_rightOptionBalance));
     }
     
     function calcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) internal pure returns(uint256)
@@ -86,7 +98,7 @@ library Formulas
         // );
 
         uint256 fmin = 200;                 // The min fee applied * 100
-        uint256 fmax = 5000;                // The max fee applied * 100
+        uint256 fmax = 7500;                // The max fee applied * 100
         fee = fmin + ((fmax-fmin)*fee)/calFactor; // calFactor neutralized here
         // fee = SafeMath.add(
         //     fmin,
