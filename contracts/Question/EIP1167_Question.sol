@@ -15,7 +15,7 @@ contract EIP1167_Question
     
     enum State {BETTING, REPORTING, RESOLVED}
     
-    State private currState;
+    State public currState;
     address payable public owner;
     string public description;
     string[] public options;
@@ -84,7 +84,8 @@ contract EIP1167_Question
             winningOptionId = calcWinningOption(reportingOptionBalances); 
             (bettingRightOptionBalance, bettingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(bettingOptionBalances);
             (reportingRightOptionBalance, reportingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(reportingOptionBalances);
-            
+            //validationPool = validationPool.add(reportingRightOptionBalance.add(reportingWrongOptionsBalance));
+            //marketPool = marketPool.add(stakeChangePool);
             //reportingPool = reportingPool.add(validationPool); //This statement is unecessary
             
             emit phaseChange(address(this), currState);
@@ -171,10 +172,10 @@ contract EIP1167_Question
          * Uncomment the lines in this function after importing validationFee code.
          * Check for gas costs.
          */
-        //console.log("Function start.");
+        // Can be called multiple times
         require(msg.value >10**4, "Invalid amount to stake.");
-
         hasVoted[msg.sender] = true;
+
         uint256 amount = msg.value;
 
         // uint256 validationFeePer = formulas.calcValidationFeePer(block.timestamp, startTime, endTime);
@@ -194,9 +195,11 @@ contract EIP1167_Question
         validationPool = validationPool.add(validationFee);
         marketPool = marketPool.add(stakeAmount);
         
-        assert(marketMakerFee + validationFee + stakeAmount == amount);
+        assert(marketMakerFee + validationFee + stakeAmount == amount); // Dangerous statement, try to round-off some error
+
         // // console.log("Amount staked is: %d", stakeAmount);
         stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
+        bettingOptionBalances[_optionId] = bettingOptionBalances[_optionId].add(stakeAmount);
         
         emit staked(address(this), msg.sender, _optionId, msg.value);
     }
@@ -204,6 +207,7 @@ contract EIP1167_Question
     
     function changeStake(uint256 _fromOptionId, uint256 _toOptionId, uint256 _amount) external changeState checkState(State.BETTING) validOption(_fromOptionId) validOption(_toOptionId)
     {
+        // Can be called multiple times
         /***
          * @notice This function allows the user to change the stake from one option to another option.
          * @dev 1% is being deducted from _amount.
@@ -220,62 +224,73 @@ contract EIP1167_Question
         stakeChangePool = stakeChangePool.add(_amount.div(100));
 
         stakeDetails[msg.sender][_fromOptionId] = fromOptionStakedAmount.sub(_amount);
-        _amount = _amount.sub(_amount.div(100));
+        _amount = _amount.sub(_amount.div(100)); // Deducting 1% fee.
+        bettingOptionBalances[_fromOptionId] = bettingOptionBalances[_fromOptionId].sub(_amount);
+        bettingOptionBalances[_toOptionId] = bettingOptionBalances[_toOptionId].add(_amount);
         stakeDetails[msg.sender][_toOptionId] = toOptionStakedAmount.add(_amount);
-        
+
         emit stakeChanged(address(this), msg.sender, _fromOptionId, _toOptionId, _amount);
     }
     
     function stakeForReporting(uint256 _optionId) external payable changeState checkState(State.REPORTING)
     {
+        // One time calling function
+        
         require(!hasVoted[msg.sender] && !hasStaked[msg.sender], "Sorry, you have already staked/voted!");
-        //reportingPool = reportingPool.add(msg.value);
+        hasStaked[msg.sender] = true;
+        
         validationPool = validationPool.add(msg.value);
         reportingOptionBalances[_optionId] = reportingOptionBalances[_optionId].add(msg.value);
         stakeDetails[msg.sender][_optionId] = msg.value;
-        hasStaked[msg.sender] = true;
         
         emit staked(address(this), msg.sender, _optionId, msg.value);
     }
     
-    function redeemBettingPayout() external payable changeState checkState(State.RESOLVED)
+    function redeemStakedPayout() external payable changeState checkState(State.RESOLVED)
     {
         require(hasVoted[msg.sender], "You have not participated in the betting market !");
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You lost your stake as you didn't predict the answer correctly !");
         assert(marketPool > 0); // marketPool can't be empty if the code reaches here !
-        
+
         hasVoted[msg.sender] = false;
         // uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], bettingRightOptionBalance, bettingWrongOptionsBalance);
         
-        // Library implementation.
-        uint256 amount = stakeDetails[msg.sender][winningOptionId]
+        // payout = userStake + (userStake*(bettingWrongOptionsBalance + stakeChangePool)/bettingRightOptionBalance)
+        uint256 rewardAmount = stakeDetails[msg.sender][winningOptionId]
         .calcPayout(bettingRightOptionBalance, bettingWrongOptionsBalance.add(stakeChangePool));
-        
+
         stakeDetails[msg.sender][winningOptionId] = 0;
-        marketPool = marketPool.sub(amount);
+        //marketPool = marketPool.sub(rewardAmount);
+
         address payable receiver = msg.sender;
-        require(receiver.send(amount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
+        require(receiver.send(rewardAmount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
         
-        emit payoutReceived(address(this), msg.sender, amount);
+        emit payoutReceived(address(this), msg.sender, rewardAmount);
     }
     
-    function redeemStakedPayout() external changeState checkState(State.RESOLVED)
+    function redeemReportingPayout() external changeState checkState(State.RESOLVED)
     {
         require(hasStaked[msg.sender], "You haven't participated in reporting phase !");
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You staked on the wrong option !");
-        assert(validationPool > 0); // validationPool can't be empty if the code reaches here !
+        assert(validationPool > 0); //validationPool can't be empty if the code reaches here!
+        hasStaked[msg.sender] = false;
         
         // uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], reportingRightOptionBalance, reportingWrongOptionsBalance.add(validationPool));
         
-        // Library implementation.
-        uint256 amount = stakeDetails[msg.sender][winningOptionId].calcPayout(reportingRightOptionBalance, reportingWrongOptionsBalance.add(validationPool));
-        hasStaked[msg.sender] = false;
-        stakeDetails[msg.sender][winningOptionId] = 0;
-        validationPool = validationPool.sub(amount);
-        address payable receiver = msg.sender;
-        require(receiver.send(amount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
+        // payout = userStake + (userStake*(reportingWrongOptionsBalance + validationPool)/reportingRightOptionBalance)
+        uint256 rewardAmount = stakeDetails[msg.sender][winningOptionId]
+        .calcPayout(
+            reportingRightOptionBalance, 
+            validationPool.sub(reportingRightOptionBalance)
+        );
         
-        emit payoutReceived(address(this), msg.sender, amount);
+        stakeDetails[msg.sender][winningOptionId] = 0;
+        //validationPool = validationPool.sub(rewardAmount);
+
+        address payable receiver = msg.sender;
+        require(receiver.send(rewardAmount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
+        
+        emit payoutReceived(address(this), msg.sender, rewardAmount);
     }
     
     function redeemMarketMakerPayout() external changeState checkState(State.RESOLVED) onlyOwner
