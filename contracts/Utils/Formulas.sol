@@ -85,8 +85,8 @@ library Formulas
         //     SafeMath.sub(nmax, nmin)
         // );
 
-        uint256 fmin = 500;              // Fee range min
-        uint256 fmax = 5000;           // Fee range max
+        uint256 fmin = 200;                 // The min fee applied * 100
+        uint256 fmax = 5000;                // The max fee applied * 100
         fee = fmin + ((fmax-fmin)*fee)/calFactor; // calFactor neutralized here
         // fee = SafeMath.add(
         //     fmin,
