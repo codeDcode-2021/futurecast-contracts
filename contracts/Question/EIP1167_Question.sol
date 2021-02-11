@@ -32,7 +32,7 @@ contract EIP1167_Question
     uint256 public marketPool;
     uint256 public validationPool;
     // uint256 public reportingPool; //Not necessary
-    uint256 constant public MARKET_MAKER_FEE_PER = 50; // 0.5% for now. Represented in bp format
+    uint256 constant public MARKET_MAKER_FEE_PER = 100; // 1% for now. Represented in bp format
     uint256 public winningOptionId;
     bool marketInitialized;
     
@@ -178,6 +178,7 @@ contract EIP1167_Question
         
         // Library implementation.
         uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, endTime);
+        //uint256 validationFeePer = 1000; // 10% for testing purpose
         uint256 marketMakerFee = MARKET_MAKER_FEE_PER.calcMarketMakerFee(amount);
         uint256 validationFee = MARKET_MAKER_FEE_PER.calcValidationFee(validationFeePer, amount);
         uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
@@ -186,6 +187,7 @@ contract EIP1167_Question
         validationPool = validationPool.add(validationFee);
         marketPool = marketPool.add(stakeAmount);
         
+        assert(marketMakerFee + validationFee + stakeAmount == amount);
         // // console.log("Amount staked is: %d", stakeAmount);
         stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
         
