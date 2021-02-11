@@ -71,7 +71,7 @@ library Formulas
         uint256 t = (_currTime - _startTime)/86400;
         // uint256 t = SafeMath.div(SafeMath.sub(_currTime, _startTime), 86400);
 
-        assert(t>0 && T>0 && t<T);
+        assert(t>=0 && T>0 && t<=T);
         
         
         uint256 nmin = 0;                   // Func min value
@@ -85,8 +85,8 @@ library Formulas
         //     SafeMath.sub(nmax, nmin)
         // );
 
-        uint256 fmin = 500000;              // Fee range min
-        uint256 fmax = 100000000;           // Fee range max
+        uint256 fmin = 500;              // Fee range min
+        uint256 fmax = 5000;           // Fee range max
         fee = fmin + ((fmax-fmin)*fee)/calFactor; // calFactor neutralized here
         // fee = SafeMath.add(
         //     fmin,
@@ -100,7 +100,7 @@ library Formulas
         // ); // calFactor neutralized here
         
         
-        assert(fee>fmin && fee<fmax);
+        assert(fee>=fmin && fee<=fmax);
 
         return fee;
     }
