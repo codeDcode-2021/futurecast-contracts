@@ -3,20 +3,21 @@
 ## Important files
 ```
 contracts/Factory/Factory.sol
-contracts/Question/Question.sol
+contracts/Question/EIP1167_Question.sol
 ```
 
 ## How to run?
  - `npm i`
  - `npm run compile`
  - `npm run test`
+ - `npm run lnode`
+ - `npm run ldeploy`
 
-## <b>Info for front-end team</b>
- - `helper/factory.js`
- - `helper/question.js`
- - `helper/web3.js`
- - interface for Factory
- - interface for Question
+## **Front end: Instructions for running locally**
+ - `npm run lnode`: Start a local hardhat node in this terminal
+ - Open a new terminal
+ - `npm run ldeploy`: Deploy the contract into the local node
+ - `deployInfo/info.json`: A file containing factoryInterface, factoryAddress, questionInterface
 
 ## Directories
 ### Permanent:

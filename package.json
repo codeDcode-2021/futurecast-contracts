@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "compile": "npx hardhat compile",
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "lnode": "npx hardhat node;",
+    "ldeploy": "npx hardhat run --network localhost migrations/1_ganache_script.js;"
   },
   "repository": {
     "type": "git",
@@ -27,6 +29,7 @@
     "hardhat": "^2.0.8"
   },
   "dependencies": {
+    "fs-extra": "^7.0.1",
     "ganache-cli": "^6.12.2",
     "remixd": "^0.2.4-alpha.0",
     "web3": "^1.3.3"
