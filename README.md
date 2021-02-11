@@ -17,7 +17,7 @@ contracts/Question/EIP1167_Question.sol
  - `npm run lnode`: Start a local hardhat node in this terminal
  - Open a new terminal
  - `npm run ldeploy`: Deploy the contract into the local node
- - `deployInfo/info.json`: A file containing factoryInterface, factoryAddress, questionInterface
+ - `integ/info.json`: A file containing factoryInterface, factoryAddress, questionInterface
 
 ## Directories
 ### Permanent:

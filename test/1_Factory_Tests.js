@@ -61,6 +61,7 @@ describe("Factory/Question Contract", () => {
     assert.strictEqual(_owner, owner);
   });
 
+
   it("is setting the basic information[description, options, endTime] correctly.", async () => {
     let _description = await question.description().call();
     let _options = await question.giveOptions().call();
@@ -72,6 +73,7 @@ describe("Factory/Question Contract", () => {
       assert.strictEqual(options[i], _options[i]);
     }
   });
+
 
   it("allows users to stake multiple times.", async () => {    
     tx = await question.stake(1).send({gas:maxGas, from: user, value: toWei("100")});
@@ -85,22 +87,24 @@ describe("Factory/Question Contract", () => {
     console.log('TotalMarketPoo: ', toEth(val))
   });
 
+
   it('computes validation fee correctly.', async()=>{  
     startTime = lib.toUnix("01/01/2021 00:00:00")
     endTime = lib.toUnix("12/01/2021 00:00:00")
     currentTime = lib.toUnix("01/01/2021 00:00:05")
-    ans = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-    console.log('At month 0:', 'fee: ', ans/100);
+    
+    tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+    console.log('At month 0:', 'fee: ', tx/100);
     
     for(let i = 2; i<=11; i++){
       currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
-      ans = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-      console.log('At month ', i, 'fee: ', ans/100);
+      tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+      console.log('At month ', i, 'fee: ', tx/100);
     }
     
     currentTime = lib.toUnix("11/30/2021 23:23:59")
-    ans = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-    console.log('At month 12:', 'fee: ', ans/100);
+    tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+    console.log('At month 12:', 'fee: ', tx/100);
   });
 });
   
