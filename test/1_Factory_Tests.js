@@ -1,7 +1,7 @@
 const assert = require("assert");
 const maxGas = 10000000;
 const optionSettings = {
-  a: 10,
+  // accounts: 1000,
   default_balance_ether: 10000,
   gasLimit: maxGas,
   callGasLimit: maxGas,
@@ -29,6 +29,13 @@ let description, options, endTime;
 
 const toEth = (inWei) => web3.utils.fromWei(inWei, "ether");
 const toWei = (inEth) => web3.utils.toWei(inEth, "ether");
+
+function randomNumber(min, max){
+  max = max+1;
+  const r = Math.random()*(max-min) + min;
+  return Math.floor(r);
+}
+
 
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
@@ -110,7 +117,54 @@ describe("Factory/Question Contract", () => {
     console.log('MyStake in 1: ', toEth(tx1));
 
     assert.strictEqual(toEth(tx1), (amount*99/100).toString());
+    console.log('Assert passed.');
   });
+
+  it('allows validators to stake and validate.', async()=>{
+    // Staking
+    for(let i = 3; i<=5; i++){
+      await question.stake(0).send({from: accounts[i],gas: maxGas,value: toWei(randomNumber(1, 100).toString())});
+    }
+    for(let i = 6; i<=8; i++){
+      await question.stake(1).send({from: accounts[i],gas: maxGas,value: toWei(randomNumber(1, 100).toString())});
+    }
+
+
+    currentFakeTime = "01/01/2031 05:05:59";
+    await question.changeFakeTimestamp(lib.toUnix(currentFakeTime))
+    .send({
+      gas: maxGas,
+      from: user
+    });
+    
+    // Validation
+    await question.stakeForReporting(0).send({
+      from: accounts[0],
+      value: toWei('500'),
+      gas: maxGas
+    });
+
+    console.log('winning option id after validation: ', await question.winningOptionId().call());
+
+
+    // Phase over
+    currentFakeTime = "01/07/2031 05:05:59";
+    await question.changeFakeTimestamp(lib.toUnix(currentFakeTime)).send({gas: maxGas,from: user});
+    
+
+    
+
+    // for(let i = 3; i<=5; i++){
+    //   initBalance = web3.eth.getBalance(accounts[i])
+    //   await question.redeemBettingPayout()
+    //   .send({from: accounts[i],gas: maxGas});
+    //   finBalance = web3.eth.getBalance(accounts[i])
+    //   console.log(i, ' : ', finBalance - initBalance);
+    // }
+
+    // changefaketime
+  })
+
 
 /*
 it('computes validation fee correctly.', async()=>{  

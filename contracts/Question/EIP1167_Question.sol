@@ -50,6 +50,8 @@ contract EIP1167_Question
     event payoutReceived(address indexed _market, address indexed _user, uint256 _amount);
     
     
+    uint256 public fakeTimeStamp = block.timestamp;
+
     
     modifier checkState(State _state)
     {
@@ -63,14 +65,14 @@ contract EIP1167_Question
          * @notice Ideally, we want only the owner to change the state but if anything unforeseen happens to the owner then anyone should be able to change the state as long as it is fair.
          * @dev Maybe change this to a modifier ?
          */ 
-        if(currState == State.BETTING && block.timestamp >= endTime)
+        if(currState == State.BETTING && fakeTimeStamp >= endTime)
         {
             currState = State.REPORTING;
             
             emit phaseChange(address(this), currState);
         }
         
-        else if(currState == State.REPORTING && block.timestamp >= endTime + 2 days)
+        else if(currState == State.REPORTING && fakeTimeStamp >= endTime + 2 days)
         {
             currState = State.RESOLVED;
             
@@ -115,7 +117,8 @@ contract EIP1167_Question
         owner = payable(_owner);
         description = _description;
         options = _options;
-        startTime = block.timestamp;
+        // startTime = block.timestamp;
+        startTime = fakeTimeStamp;
         endTime = _endTime;
         // reportingEndTime = _endTime + 2 days; /// @dev Change this if necessary
         currState = State.BETTING;
@@ -136,16 +139,15 @@ contract EIP1167_Question
     
     function calcWinningOption(uint256[] memory _reportingOptionBalances) internal pure returns(uint256)
     {
-        uint256 maxAmount;
+        uint256 maxAmount = _reportingOptionBalances[_reportingOptionBalances.length-1];
+        
         uint256 optionId = _reportingOptionBalances.length - 1; // By default it is invalid
         
         for(uint8 i = 0; i < _reportingOptionBalances.length; ++i)
-        {
-            uint256 optionAmount = _reportingOptionBalances[i];
-            
-            if( optionAmount > maxAmount)
+        {   
+            if( _reportingOptionBalances[i] > maxAmount)
             {
-                maxAmount = optionAmount;
+                maxAmount = _reportingOptionBalances[i];
                 optionId = i;
             }
         }
@@ -180,7 +182,9 @@ contract EIP1167_Question
         // uint256 validationFee = formulas.calcValidationFee(MARKET_MAKER_FEE_PER, validationFeePer, amount);
         
         // Library implementation.
-        uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, endTime);
+        // uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, endTime);
+        uint256 validationFeePer = fakeTimeStamp.calcValidationFeePer(startTime, endTime);
+        
         //uint256 validationFeePer = 1000; // 10% for testing purpose
         uint256 marketMakerFee = MARKET_MAKER_FEE_PER.calcMarketMakerFee(amount);
         uint256 validationFee = MARKET_MAKER_FEE_PER.calcValidationFee(validationFeePer, amount);
@@ -222,7 +226,7 @@ contract EIP1167_Question
         emit stakeChanged(address(this), msg.sender, _fromOptionId, _toOptionId, _amount);
     }
     
-    function stakeForReporting(uint256 _optionId) external payable checkState(State.REPORTING)
+    function stakeForReporting(uint256 _optionId) external payable changeState checkState(State.REPORTING)
     {
         require(!hasVoted[msg.sender] && !hasStaked[msg.sender], "Sorry, you have already staked/voted!");
         //reportingPool = reportingPool.add(msg.value);
@@ -240,11 +244,13 @@ contract EIP1167_Question
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You lost your stake as you didn't predict the answer correctly !");
         assert(marketPool > 0); // marketPool can't be empty if the code reaches here !
         
+        hasVoted[msg.sender] = false;
         // uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], bettingRightOptionBalance, bettingWrongOptionsBalance);
         
         // Library implementation.
-        uint256 amount = stakeDetails[msg.sender][winningOptionId].calcPayout(bettingRightOptionBalance, bettingWrongOptionsBalance.add(stakeChangePool));
-        hasVoted[msg.sender] = false;
+        uint256 amount = stakeDetails[msg.sender][winningOptionId]
+        .calcPayout(bettingRightOptionBalance, bettingWrongOptionsBalance.add(stakeChangePool));
+        
         stakeDetails[msg.sender][winningOptionId] = 0;
         marketPool = marketPool.sub(amount);
         address payable receiver = msg.sender;
@@ -286,10 +292,14 @@ contract EIP1167_Question
     {
         return options;
     }
-
-
-
     function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
         return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
+    }
+
+
+
+    // Remove this while deployment
+    function changeFakeTimestamp(uint256 x) public {
+        fakeTimeStamp = x;
     }
 }
