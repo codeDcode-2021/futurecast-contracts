@@ -150,9 +150,10 @@ describe("Factory/Question Contract", () => {
       await question.redeemStakedPayout().send({from: accounts[i],gas: maxGas});
       finBalance = await web3.eth.getBalance(accounts[i]);
       console.log('Staker reward: ', i, ': ', toEth(finBalance - initBalance));
-
+      
       // console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
     }
+    
     
     // Validator redeem
     for(let i = 61; i<=70; i++){
@@ -160,18 +161,21 @@ describe("Factory/Question Contract", () => {
       await question.redeemReportingPayout().send({from: accounts[i],gas: maxGas});
       finBalance = await web3.eth.getBalance(accounts[i]);
       console.log('Validator reward: ', i, ': ', toEth(finBalance - initBalance));
-
-      // console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
     }
-
- 
-
-
+    
+    
+    // Owner redeem
+    initBalance = await web3.eth.getBalance(owner);
+    await question.redeemMarketMakerPayout().send({from: owner,gas: maxGas});
+    finBalance = await web3.eth.getBalance(owner);
+    console.log('Owner reward: ', toEth(finBalance - initBalance));
+    console.log('Question balance: ', await web3.eth.getBalance(deployedQuestionAddress));
+    
   });
-
-
+  
+  
   it('shows some events.', async()=>{
-
+    
   });
 
 /*

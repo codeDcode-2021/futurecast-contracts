@@ -65,6 +65,7 @@ contract EIP1167_Question
          * @notice Ideally, we want only the owner to change the state but if anything unforeseen happens to the owner then anyone should be able to change the state as long as it is fair.
          * @dev Maybe change this to a modifier ?
          */ 
+         
         if(currState == State.BETTING && fakeTimeStamp >= endTime)
         {
             currState = State.REPORTING;
@@ -84,9 +85,6 @@ contract EIP1167_Question
             winningOptionId = calcWinningOption(reportingOptionBalances); 
             (bettingRightOptionBalance, bettingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(bettingOptionBalances);
             (reportingRightOptionBalance, reportingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(reportingOptionBalances);
-            //validationPool = validationPool.add(reportingRightOptionBalance.add(reportingWrongOptionsBalance));
-            //marketPool = marketPool.add(stakeChangePool);
-            //reportingPool = reportingPool.add(validationPool); //This statement is unecessary
             
             emit phaseChange(address(this), currState);
         }
@@ -186,7 +184,6 @@ contract EIP1167_Question
         // uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, endTime);
         uint256 validationFeePer = fakeTimeStamp.calcValidationFeePer(startTime, endTime);
         
-        //uint256 validationFeePer = 1000; // 10% for testing purpose
         uint256 marketMakerFee = MARKET_MAKER_FEE_PER.calcMarketMakerFee(amount);
         uint256 validationFee = MARKET_MAKER_FEE_PER.calcValidationFee(validationFeePer, amount);
         uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
@@ -295,17 +292,11 @@ contract EIP1167_Question
         emit payoutReceived(address(this), msg.sender, amount);
     }
     
-    function giveOptions() public view returns (string[] memory) 
-    {
-        return options;
-    }
+    
+    // Waste functions
     function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
         return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
     }
-
-
-
-    // Remove this while deployment
     function changeFakeTimestamp(uint256 x) public {
         fakeTimeStamp = x;
     }
