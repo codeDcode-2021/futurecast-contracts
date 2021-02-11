@@ -197,7 +197,6 @@ contract EIP1167_Question
         
         assert(marketMakerFee + validationFee + stakeAmount == amount); // Dangerous statement, try to round-off some error
 
-        // // console.log("Amount staked is: %d", stakeAmount);
         stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
         bettingOptionBalances[_optionId] = bettingOptionBalances[_optionId].add(stakeAmount);
         
@@ -250,17 +249,13 @@ contract EIP1167_Question
     {
         require(hasVoted[msg.sender], "You have not participated in the betting market !");
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You lost your stake as you didn't predict the answer correctly !");
-        assert(marketPool > 0); // marketPool can't be empty if the code reaches here !
-
         hasVoted[msg.sender] = false;
-        // uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], bettingRightOptionBalance, bettingWrongOptionsBalance);
-        
+
         // payout = userStake + (userStake*(bettingWrongOptionsBalance + stakeChangePool)/bettingRightOptionBalance)
         uint256 rewardAmount = stakeDetails[msg.sender][winningOptionId]
         .calcPayout(bettingRightOptionBalance, bettingWrongOptionsBalance.add(stakeChangePool));
 
         stakeDetails[msg.sender][winningOptionId] = 0;
-        //marketPool = marketPool.sub(rewardAmount);
 
         address payable receiver = msg.sender;
         require(receiver.send(rewardAmount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
@@ -275,9 +270,7 @@ contract EIP1167_Question
         assert(validationPool > 0); //validationPool can't be empty if the code reaches here!
         hasStaked[msg.sender] = false;
         
-        // uint256 amount = formulas.calcPayout(stakeDetails[msg.sender][winningOptionId], reportingRightOptionBalance, reportingWrongOptionsBalance.add(validationPool));
-        
-        // payout = userStake + (userStake*(reportingWrongOptionsBalance + validationPool)/reportingRightOptionBalance)
+        // payout = userStake + (userStake*(reportingWrongOptionsBalance + validationFees)/reportingRightOptionBalance)
         uint256 rewardAmount = stakeDetails[msg.sender][winningOptionId]
         .calcPayout(
             reportingRightOptionBalance, 
@@ -285,7 +278,6 @@ contract EIP1167_Question
         );
         
         stakeDetails[msg.sender][winningOptionId] = 0;
-        //validationPool = validationPool.sub(rewardAmount);
 
         address payable receiver = msg.sender;
         require(receiver.send(rewardAmount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
