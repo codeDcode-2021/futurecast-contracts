@@ -1,16 +1,11 @@
-import Web3 from 'web3';
+const Web3 = require("web3");
+const hre = require("hardhat");
 
 let web3;
 let walletStatus = false;
 
-let initConnect = async()=>{  
-    // metamask not available
-    const provider = new Web3.providers
-    .HttpProvider(
-        'HTTP_PROVIDER'
-    );
-    web3 = new Web3(provider);
-    
+let initConnect = async()=>{
+    web3 = new Web3(hre.network.provider);
 };
 initConnect();
 

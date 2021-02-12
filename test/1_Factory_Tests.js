@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 const assert = require("chai").assert;
 const truffleAssert = require('truffle-assertions');
 const maxGas = 10**10; // Changed maxGas from 10**6
+=======
+const assert = require("assert");
+const maxGas = 10**7;
+>>>>>>> cc71ed8e09f3292419d19b3365ebeb3b8fff5a42
 const optionSettings = {
   debug: true,
   total_accounts: 1000, // Changed from 100
@@ -51,7 +56,11 @@ beforeEach(async () => {
     .deploy({
       data: compiledFactory.bytecode,
     })
+<<<<<<< HEAD
     .send({ from: admin, gas: maxGas}); // Added gas: maxGas
+=======
+    .send({ from: admin, gas: maxGas});
+>>>>>>> cc71ed8e09f3292419d19b3365ebeb3b8fff5a42
   factory = factoryInstance.methods;
 
   description = "Who will win World Cup 2030";
@@ -60,7 +69,11 @@ beforeEach(async () => {
 
   tx = await factory
     .createQuestion(description, options, lib.toUnix(endTime))
+<<<<<<< HEAD
     .send({ from: owner, gas: maxGas}); // Added gas: maxGas
+=======
+    .send({ from: owner, gas: maxGas});
+>>>>>>> cc71ed8e09f3292419d19b3365ebeb3b8fff5a42
   // console.log('Amount to deploy: ', tx.gasUsed)
 
 
