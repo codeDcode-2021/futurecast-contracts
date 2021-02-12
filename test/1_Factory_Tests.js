@@ -1,4 +1,4 @@
-const assert = require("chai").assert;
+const assert = require(assert);
 const truffleAssert = require('truffle-assertions');
 const maxGas = 10**7; // Changed maxGas from 10**6
 const optionSettings = {
@@ -40,6 +40,25 @@ function randomNumber(min, max){
   return Math.floor(r);
 }
 
+let advanceTime = (time) => {
+  return new Promise((resolve, reject) => {
+    web3.currentProvider.send({jsonrpc: '2.0',method: 'evm_increaseTime',params: [time],id: new Date().getTime()}, 
+    (err, result) => {if (err) { return reject(err) }return resolve(result)})
+  })
+}
+
+let advanceBlock = () => {
+  return new Promise((resolve, reject) => {
+    web3.currentProvider.send({jsonrpc: '2.0',method: 'evm_mine',id: new Date().getTime()}, 
+    (err, result) => {if (err) { return reject(err) }const newBlockHash = web3.eth.getBlock('latest').hash; return resolve(newBlockHash)})
+  })
+}
+
+let advanceTimeAndBlock = async (time) => {
+  await advanceTime(time);
+  await advanceBlock();
+  return Promise.resolve(await web3.eth.getBlock("latest"));
+};
 
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
@@ -68,171 +87,134 @@ beforeEach(async () => {
   question = await questionInstance(deployedQuestionAddress);
 });
 
-// describe("Factory/Question Contract", () => {
-//   // it("is setting the owner correctly.", async () => {
-//   //   let _owner = await question.owner().call();
-//   //   assert.strictEqual(_owner, owner);
-//   // });
+describe("Factory/Question Contract", () => {
+  // it("is setting the owner correctly.", async () => {
+  //   let _owner = await question.owner().call();
+  //   assert.strictEqual(_owner, owner);
+  // });
 
 
-//   // it("is setting the basic information[description, options, endTime] correctly.", async () => {
-//   //   let _description = await question.description().call();
-//   //   let _options = await question.giveOptions().call();
-//   //   let _endTime = await question.endTime().call();
+  // it("is setting the basic information[description, options, endTime] correctly.", async () => {
+  //   let _description = await question.description().call();
+  //   let _options = await question.giveOptions().call();
+  //   let _endTime = await question.endTime().call();
 
-//   //   assert.strictEqual(_description, description);
-//   //   assert.strictEqual(lib.fromUnix(_endTime), endTime);
-//   //   for (let i = 0; i < options.length; i++) {
-//   //     assert.strictEqual(options[i], _options[i]);
-//   //   }
-//   // });
+  //   assert.strictEqual(_description, description);
+  //   assert.strictEqual(lib.fromUnix(_endTime), endTime);
+  //   for (let i = 0; i < options.length; i++) {
+  //     assert.strictEqual(options[i], _options[i]);
+  //   }
+  // });
 
 
-//   // it("allows users to stake multiple times.", async () => {    
-//   //   tx = await question.stake(0)
-//   //   .send({gas:maxGas, from: user, value: toWei("100")});
-//   //   console.log('Gas used: ', tx.gasUsed);
+  // it("allows users to stake multiple times.", async () => {    
+  //   tx = await question.stake(0)
+  //   .send({gas:maxGas, from: user, value: toWei("100")});
+  //   console.log('Gas used: ', tx.gasUsed);
     
-//   //   tx = await question.stakeDetails(user, 0).call();
-//   //   console.log('MyStake: ', toEth(tx));
+  //   tx = await question.stakeDetails(user, 0).call();
+  //   console.log('MyStake: ', toEth(tx));
 
-//   //   val = await question.marketMakerPool().call()
-//   //   console.log('MarketMakerPool: ', toEth(val))
-//   //   val = await question.validationPool().call()
-//   //   console.log('ValidationFeePool: ', toEth(val))
-//   //   val = await question.marketPool().call()
-//   //   console.log('TotalMarketPool: ', toEth(val))
-//   // });
+  //   val = await question.marketMakerPool().call()
+  //   console.log('MarketMakerPool: ', toEth(val))
+  //   val = await question.validationPool().call()
+  //   console.log('ValidationFeePool: ', toEth(val))
+  //   val = await question.marketPool().call()
+  //   console.log('TotalMarketPool: ', toEth(val))
+  // });
 
-//   // it("allows users to change their stake.", async()=>{
-//   //   tx = await question.stake(0)
-//   //   .send({gas:maxGas, from: user, value: toWei("100")});
-//   //   console.log('Gas used for stake: ', tx.gasUsed);
+  // it("allows users to change their stake.", async()=>{
+  //   tx = await question.stake(0)
+  //   .send({gas:maxGas, from: user, value: toWei("100")});
+  //   console.log('Gas used for stake: ', tx.gasUsed);
    
-//   //   let amount = 23;
-//   //   tx = await question.changeStake(0, 1, toWei(amount.toString()))
-//   //   .send({gas:maxGas, from: user, });
-//   //   console.log('Gas used for change stake: ', tx.gasUsed);
+  //   let amount = 23;
+  //   tx = await question.changeStake(0, 1, toWei(amount.toString()))
+  //   .send({gas:maxGas, from: user, });
+  //   console.log('Gas used for change stake: ', tx.gasUsed);
 
-//   //   tx0 = await question.stakeDetails(user, 0).call();
-//   //   console.log('MyStake in 0: ', toEth(tx0));
+  //   tx0 = await question.stakeDetails(user, 0).call();
+  //   console.log('MyStake in 0: ', toEth(tx0));
 
-//   //   tx1 = await question.stakeDetails(user, 1).call();
-//   //   console.log('MyStake in 1: ', toEth(tx1));
+  //   tx1 = await question.stakeDetails(user, 1).call();
+  //   console.log('MyStake in 1: ', toEth(tx1));
 
-//   //   assert.strictEqual(toEth(tx1), (amount*99/100).toString());
-//   //   console.log('Assert passed.');
-//   // });
+  //   assert.strictEqual(toEth(tx1), (amount*99/100).toString());
+  //   console.log('Assert passed.');
+  // });
 
-//   it('Small market simulation', async()=>{ // Changes from "allows validators to stake and validate."
-//     // Staking
-//     for(let i = 1; i<=30; i++)
-//       await question.stake(0).send({from: accounts[i],gas: maxGas,value: toWei(10)});
+  it('Small market simulation', async()=>{ // Changes from "allows validators to stake and validate."
+    // Staking
+    for(let i = 1; i<=30; i++)
+      await question.stake(0).send({from: accounts[i],gas: maxGas,value: toWei(10)});
     
-//     for(let i = 31; i<=60; i++)
-//       await question.stake(1).send({from: accounts[i],gas: maxGas,value: toWei(10)});
+    for(let i = 31; i<=60; i++)
+      await question.stake(1).send({from: accounts[i],gas: maxGas,value: toWei(10)});
 
-//     currentFakeTime = "01/01/2031 05:05:59";
-//     await question.changeFakeTimestamp(lib.toUnix(currentFakeTime))
-//     .send({from: user, gas: maxGas});
+    currentFakeTime = "01/01/2031 05:05:59";
+    await question.changeFakeTimestamp(lib.toUnix(currentFakeTime))
+    .send({from: user, gas: maxGas});
 
-//     // Validation
-//     for(let i = 61; i<=70; i++)
-//       await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
+    // Validation
+    for(let i = 61; i<=70; i++)
+      await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
 
-//     await expectRevert(question.stake(0).send({from: accounts[10], gas: maxGas, value: toWei(10)}), 
-//     "This function is not allowed in the current phase of the market");
+    await expectRevert(question.stake(0).send({from: accounts[10], gas: maxGas, value: toWei(10)}), 
+    "This function is not allowed in the current phase of the market");
 
-//     // Phase over + Reward Distribution
-//     currentFakeTime = "01/07/2031 05:05:59";
-//     await question.changeFakeTimestamp(lib.toUnix(currentFakeTime)).send({from: user, gas: maxGas});
-//     console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
+    // Phase over + Reward Distribution
+    currentFakeTime = "01/07/2031 05:05:59";
+    await question.changeFakeTimestamp(lib.toUnix(currentFakeTime)).send({from: user, gas: maxGas});
+    console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
 
-//     // Staker redeem
-//     for(let i = 1; i<=30; i++){
-//       initBalance = await web3.eth.getBalance(accounts[i]);
-//       await question.redeemStakedPayout().send({from: accounts[i],gas: maxGas});
-//       finBalance = await web3.eth.getBalance(accounts[i]);
-//       console.log('Staker reward: ', i, ': ', toEth(finBalance - initBalance));
-//     }
-//     console.log('\nQuestion balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)), "\n");
+    // Staker redeem
+    for(let i = 1; i<=30; i++){
+      initBalance = await web3.eth.getBalance(accounts[i]);
+      await question.redeemStakedPayout().send({from: accounts[i],gas: maxGas});
+      finBalance = await web3.eth.getBalance(accounts[i]);
+      console.log('Staker reward: ', i, ': ', toEth(finBalance - initBalance));
+    }
+    console.log('\nQuestion balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)), "\n");
 
     
-//     // Validator redeem
-//     for(let i = 61; i<=70; i++){
-//       initBalance = await web3.eth.getBalance(accounts[i]);
-//       await question.redeemReportingPayout().send({from: accounts[i],gas: maxGas});
-//       finBalance = await web3.eth.getBalance(accounts[i]);
-//       console.log('Validator reward: ', i, ': ', toEth(finBalance - initBalance));
-//     }
-//     console.log('\nQuestion balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)), "\n");
+    // Validator redeem
+    for(let i = 61; i<=70; i++){
+      initBalance = await web3.eth.getBalance(accounts[i]);
+      await question.redeemReportingPayout().send({from: accounts[i],gas: maxGas});
+      finBalance = await web3.eth.getBalance(accounts[i]);
+      console.log('Validator reward: ', i, ': ', toEth(finBalance - initBalance));
+    }
+    console.log('\nQuestion balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)), "\n");
 
 
-//     // Owner redeem
-//     initBalance = await web3.eth.getBalance(owner);
-//     await question.redeemMarketMakerPayout().send({from: owner,gas: maxGas});
-//     finBalance = await web3.eth.getBalance(owner);
-//     console.log('Owner reward: ', toEth(finBalance - initBalance));
+    // Owner redeem
+    initBalance = await web3.eth.getBalance(owner);
+    await question.redeemMarketMakerPayout().send({from: owner,gas: maxGas});
+    finBalance = await web3.eth.getBalance(owner);
+    console.log('Owner reward: ', toEth(finBalance - initBalance));
 
-//     console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)), "\n");
-    
-//   });
-  
-  
-
-
-// /*
-// it('computes validation fee correctly.', async()=>{  
-//   startTime = lib.toUnix("01/01/2021 00:00:00")
-//   endTime = lib.toUnix("12/01/2021 00:00:00")
-//   currentTime = lib.toUnix("01/01/2021 00:00:05")
-  
-//   tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-//   console.log('At month 0:', 'fee: ', tx/100);
-  
-//   for(let i = 2; i<=11; i++){
-//     currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
-//     tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-//     console.log('At month ', i, 'fee: ', tx/100);
-//   }
-  
-//   currentTime = lib.toUnix("11/30/2021 23:23:59")
-//   tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-//   console.log('At month 12:', 'fee: ', tx/100);
-// });
-// */
-// });
-
-describe("Tests for require statements", ()=>{
-
-  it("Can't initialize a market again", async()=>{
-    // console.log(await question.marketInitialized().call())
-    await truffleAssert.reverts(
-      question.init(accounts[0], "Who will be the president of the USA ?", ["Donald Trump", "Joe Biden"], lib.toUnix("12/31/2030 05:05:05")).send({from: accounts[0], gas: maxGas}),
-      "Can't change the market parameters once initialized !"
-    );
+    console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)), "\n");
     
   });
 
-  it("Can't stake < 10^4 wei", async()=>{
-    await truffleAssert.reverts(
-      question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(0)}),
-      "Invalid amount to stake."
-    );
+
+  it('computes validation fee correctly.', async()=>{  
+    startTime = lib.toUnix("01/01/2021 00:00:00")
+    endTime = lib.toUnix("12/01/2021 00:00:00")
+    currentTime = lib.toUnix("01/01/2021 00:00:05")
+    
+    tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+    console.log('At month 0:', 'fee: ', tx/100);
+    
+    for(let i = 2; i<=11; i++){
+      currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
+      tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+      console.log('At month ', i, 'fee: ', tx/100);
+    }
+    
+    currentTime = lib.toUnix("11/30/2021 23:23:59")
+    tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+    console.log('At month 12:', 'fee: ', tx/100);
   });
 
-  it("Can't change stake if not participated in voting yet", async()=>{
-    await truffleAssert.reverts(
-      question.changeStake(0, 1, 200).send({from: accounts[0], gas: maxGas}),
-      "You haven't voted before!"
-    );
-  });
-
-  it("Can't change stake if stake change amount is higher than the amount in the option", async()=>{
-    question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
-    await truffleAssert.reverts(
-      question.changeStake(1, 0, toWei(200)).send({from: accounts[0], gas: maxGas}),
-      "Stake change amount is higher than the staked amount !"
-    )
-  });
 });
