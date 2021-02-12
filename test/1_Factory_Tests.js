@@ -1,5 +1,5 @@
 const assert = require("assert");
-const maxGas = 10**6;
+const maxGas = 10**7;
 const optionSettings = {
   debug: true,
   total_accounts: 100,
@@ -50,7 +50,7 @@ beforeEach(async () => {
     .deploy({
       data: compiledFactory.bytecode,
     })
-    .send({ from: admin});
+    .send({ from: admin, gas: maxGas});
   factory = factoryInstance.methods;
 
   description = "Who will win World Cup 2030";
@@ -59,7 +59,7 @@ beforeEach(async () => {
 
   tx = await factory
     .createQuestion(description, options, lib.toUnix(endTime))
-    .send({ from: owner});
+    .send({ from: owner, gas: maxGas});
   // console.log('Amount to deploy: ', tx.gasUsed)
 
 
