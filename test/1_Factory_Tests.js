@@ -169,6 +169,7 @@ describe("Factory/Question Contract", () => {
       await question.redeemStakedPayout().send({from: accounts[i],gas: maxGas});
       finBalance = await web3.eth.getBalance(accounts[i]);
       console.log('Staker reward: ', i, ': ', toEth(finBalance - initBalance));
+    }
     console.log('\nQuestion balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)), "\n");
 
     
