@@ -112,7 +112,7 @@ contract EIP1167_Question
         /***
          * @dev Function for creating a market
          */
-        require(marketInitialized == false, "Can't change the market parameters once initialized !");
+        require(!marketInitialized, "Can't change the market parameters once initialized !");
         marketInitialized = true;
         owner = payable(_owner);
         description = _description;

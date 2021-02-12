@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 const assert = require("chai").assert;
 const truffleAssert = require('truffle-assertions');
-const maxGas = 10**10; // Changed maxGas from 10**6
-=======
-const assert = require("assert");
-const maxGas = 10**7;
->>>>>>> cc71ed8e09f3292419d19b3365ebeb3b8fff5a42
+const maxGas = 10**7; // Changed maxGas from 10**6
 const optionSettings = {
   debug: true,
   total_accounts: 1000, // Changed from 100
@@ -56,11 +51,7 @@ beforeEach(async () => {
     .deploy({
       data: compiledFactory.bytecode,
     })
-<<<<<<< HEAD
     .send({ from: admin, gas: maxGas}); // Added gas: maxGas
-=======
-    .send({ from: admin, gas: maxGas});
->>>>>>> cc71ed8e09f3292419d19b3365ebeb3b8fff5a42
   factory = factoryInstance.methods;
 
   description = "Who will win World Cup 2030";
@@ -69,11 +60,7 @@ beforeEach(async () => {
 
   tx = await factory
     .createQuestion(description, options, lib.toUnix(endTime))
-<<<<<<< HEAD
     .send({ from: owner, gas: maxGas}); // Added gas: maxGas
-=======
-    .send({ from: owner, gas: maxGas});
->>>>>>> cc71ed8e09f3292419d19b3365ebeb3b8fff5a42
   // console.log('Amount to deploy: ', tx.gasUsed)
 
 
@@ -221,7 +208,7 @@ describe("Tests for require statements", ()=>{
   it("Can't initialize a market again", async()=>{
     // console.log(await question.marketInitialized().call())
     await truffleAssert.reverts(
-      question.init(accounts[0], "Who will be the president of the USA ?", ["Donald Trump", "Joe Biden"], lib.toUnix("12/31/2030 05:05:05")).call(),
+      question.init(accounts[0], "Who will be the president of the USA ?", ["Donald Trump", "Joe Biden"], lib.toUnix("12/31/2030 05:05:05")).send({from: accounts[0], gas: maxGas}),
       "Can't change the market parameters once initialized !"
     );
     
@@ -236,9 +223,16 @@ describe("Tests for require statements", ()=>{
 
   it("Can't change stake if not participated in voting yet", async()=>{
     await truffleAssert.reverts(
-      question.changeStake(0, 1, 200).call(),
+      question.changeStake(0, 1, 200).send({from: accounts[0], gas: maxGas}),
       "You haven't voted before!"
     );
   });
 
+  it("Can't change stake if stake change amount is higher than the amount in the option", async()=>{
+    question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
+    await truffleAssert.reverts(
+      question.changeStake(1, 0, toWei(200)).send({from: accounts[0], gas: maxGas}),
+      "Stake change amount is higher than the staked amount !"
+    )
+  });
 });
