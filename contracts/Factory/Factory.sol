@@ -33,8 +33,8 @@ contract Factory
         emit newQuestionCreated(address(newQuestion), _description);
     }
 
-    function giveLastDeployed() public view returns (address) 
+    function giveQuestionAddresses() public view returns (address[] memory) 
     {
-        return questionAddresses[questionAddresses.length-1];
+        return questionAddresses;
     }
 }
