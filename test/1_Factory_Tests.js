@@ -1,5 +1,4 @@
-const assert = require(assert);
-const truffleAssert = require('truffle-assertions');
+const assert = require('assert');
 const maxGas = 10**7; // Changed maxGas from 10**6
 const optionSettings = {
   debug: true,
@@ -158,9 +157,6 @@ describe("Factory/Question Contract", () => {
     // Validation
     for(let i = 61; i<=70; i++)
       await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
-
-    await expectRevert(question.stake(0).send({from: accounts[10], gas: maxGas, value: toWei(10)}), 
-    "This function is not allowed in the current phase of the market");
 
     // Phase over + Reward Distribution
     currentFakeTime = "01/07/2031 05:05:59";

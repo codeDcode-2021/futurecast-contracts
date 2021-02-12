@@ -1,4 +1,4 @@
-const assert = require(assert);
+const assert = require('assert');
 const truffleAssert = require('truffle-assertions');
 const maxGas = 10**7; // Changed maxGas from 10**6
 const optionSettings = {
@@ -87,7 +87,7 @@ beforeEach(async () => {
   question = await questionInstance(deployedQuestionAddress);
 });
 
-describe("Tests for require statements", ()=>{
+describe("Test for require statements in functions 'Stake' and 'Init'", ()=>{
 
     it("Can't initialize a market again", async()=>{
       // console.log(await question.marketInitialized().call())
@@ -95,7 +95,6 @@ describe("Tests for require statements", ()=>{
         question.init(accounts[0], "Who will be the president of the USA ?", ["Donald Trump", "Joe Biden"], lib.toUnix("12/31/2030 05:05:05")).send({from: accounts[0], gas: maxGas}),
         "Can't change the market parameters once initialized !"
       );
-      
     });
   
     it("Can't stake < 10^4 wei", async()=>{
@@ -104,35 +103,38 @@ describe("Tests for require statements", ()=>{
         "Invalid amount to stake."
       );
     });
-  
+});
+
+describe("Test for require statements in function 'changeStake'", ()=>{
     it("Can't change stake if not participated in voting yet", async()=>{
-      await truffleAssert.reverts(
-        question.changeStake(0, 1, 200).send({from: accounts[0], gas: maxGas}),
-        "You haven't voted before!"
-      );
-    });
-  
+        await truffleAssert.reverts(
+          question.changeStake(0, 1, 200).send({from: accounts[0], gas: maxGas}),
+          "You haven't voted before!"
+        );
+      });
+    
     it("Can't change stake if stake change amount is higher than the amount in the option", async()=>{
-      question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
-      await truffleAssert.reverts(
+    question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
+    await truffleAssert.reverts(
         question.changeStake(1, 0, toWei(200)).send({from: accounts[0], gas: maxGas}),
         "Stake change amount is higher than the staked amount !"
-      );
+        );
     });
-  
+
     it("Options must not be same", async()=>{
-      question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
-      await truffleAssert.reverts(
+    question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
+    await truffleAssert.reverts(
         question.changeStake(1, 1, toWei(5)).send({from: accounts[0], gas: maxGas}),
         "Options are the same !"
-      );
+        );
     });
-  
-    it("Amount must be sufficient", async()=>{
-      question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
-      await truffleAssert.reverts(
+
+    it("Stake amount must be sufficient", async()=>{
+    question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
+    await truffleAssert.reverts(
         question.changeStake(1, 0, 0).send({from: accounts[0], gas: maxGas}),
         "Insufficient stake change amount"
-      );
+        );
     });
-  });
+});
+    
