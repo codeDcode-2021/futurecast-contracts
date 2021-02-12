@@ -35,7 +35,7 @@ contract EIP1167_Question
     // uint256 public reportingPool; //Not necessary
     uint256 constant public MARKET_MAKER_FEE_PER = 100; // 1% for now. Represented in bp format
     uint256 public winningOptionId;
-    bool marketInitialized;
+    bool public marketInitialized;
     
     /// @dev mapping(address=>mapping(optionId=>stake))
     mapping(address => mapping(uint256=>uint256)) public stakeDetails; // Change the visibility to private after testing. For Betters AND Validators
@@ -112,7 +112,8 @@ contract EIP1167_Question
         /***
          * @dev Function for creating a market
          */
-        require(!marketInitialized, "Can't change the market parameters once initialized !");
+        require(marketInitialized == false, "Can't change the market parameters once initialized !");
+        marketInitialized = true;
         owner = payable(_owner);
         description = _description;
         options = _options;
@@ -121,7 +122,6 @@ contract EIP1167_Question
         endTime = _endTime;
         // reportingEndTime = _endTime + 2 days; /// @dev Change this if necessary
         currState = State.BETTING;
-        marketInitialized = true;
         
         /// @dev Check if fix sized arrays are better here.
         for(uint8 i = 0; i <= _options.length; ++i) // '<=' So that invalid option can also be accounted for.
@@ -139,7 +139,6 @@ contract EIP1167_Question
     function calcWinningOption(uint256[] memory _reportingOptionBalances) internal pure returns(uint256)
     {
         uint256 maxAmount = _reportingOptionBalances[_reportingOptionBalances.length-1];
-        
         uint256 optionId = _reportingOptionBalances.length - 1; // By default it is invalid
         
         for(uint8 i = 0; i < _reportingOptionBalances.length; ++i)
@@ -171,7 +170,7 @@ contract EIP1167_Question
          * Check for gas costs.
          */
         // Can be called multiple times
-        require(msg.value >10**4, "Invalid amount to stake.");
+        require(msg.value > 10**4, "Invalid amount to stake.");
         hasVoted[msg.sender] = true;
 
         uint256 amount = msg.value;
@@ -183,7 +182,6 @@ contract EIP1167_Question
         // Library implementation.
         // uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, endTime);
         uint256 validationFeePer = fakeTimeStamp.calcValidationFeePer(startTime, endTime);
-        
         uint256 marketMakerFee = MARKET_MAKER_FEE_PER.calcMarketMakerFee(amount);
         uint256 validationFee = MARKET_MAKER_FEE_PER.calcValidationFee(validationFeePer, amount);
         uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
@@ -208,8 +206,7 @@ contract EIP1167_Question
          * @notice This function allows the user to change the stake from one option to another option.
          * @dev 1% is being deducted from _amount.
          */
-        //require(block.timestamp >= endTime, "Sorry, the betting phase has been completed !");
-        
+
         require(hasVoted[msg.sender], "You haven't voted before!");
         require(stakeDetails[msg.sender][_fromOptionId] >= _amount, "Stake change amount is higher than the staked amount !");
         require(_fromOptionId != _toOptionId, "Options are the same !");
