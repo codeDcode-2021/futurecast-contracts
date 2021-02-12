@@ -1,11 +1,8 @@
 // Preconfigured instance of the contract
-import web3 from './web3';
-import compiledFactory from './../'
+import web3 from './web3-hardhat';
+import info from './info.json';
 
-
-const factory = new web3.eth.Contract(
-    compiledFactory.abi,
-    '0x7DA8BB2B098D651634d877b91B3dcaFBbA484E6f'
+export default factory = new web3.eth.Contract(
+    info.factoryInterface,
+    info.factoryAddress
 );
-
-export default factory;
