@@ -87,6 +87,8 @@ beforeEach(async () => {
   question = await questionInstance(deployedQuestionAddress);
 });
 
+let SECONDS_IN_A_DAY = 86400;
+
 describe("Factory/Question Contract", () => {
   // it("is setting the owner correctly.", async () => {
   //   let _owner = await question.owner().call();
@@ -156,22 +158,22 @@ describe("Factory/Question Contract", () => {
     // .send({from: user, gas: maxGas});
 
     newTime = "02/01/2031 05:05:59";
-    await advanceTime(lib.toUnix(newTime));
+    await advanceTimeAndBlock(100*SECONDS_IN_A_DAY); // THIS WILL FORWARD THE TIME TO 100 DAYS
+    
+// Validation
+for(let i = 61; i<=70; i++)
+await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
 
-    // Validation
-    for(let i = 61; i<=70; i++)
-      await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
+// Phase over + Reward Distribution
+//currentFakeTime = "01/07/2031 05:05:59";
+// await question.changeFakeTimestamp(lib.toUnix(currentFakeTime)).send({from: user, gas: maxGas});
+newTime = "02/03/2031 05:06:59";
+await advanceTimeAndBlock(lib.toUnix(newTime)); // UPDATE THIS STATEMENT APPROPRIATELY.
+console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
 
-    // Phase over + Reward Distribution
-    //currentFakeTime = "01/07/2031 05:05:59";
-    // await question.changeFakeTimestamp(lib.toUnix(currentFakeTime)).send({from: user, gas: maxGas});
-    newTime = "02/03/2031 05:06:59";
-    await advanceTime(lib.toUnix(newTime));
-    console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
-
-    // Staker redeem
-    for(let i = 1; i<=30; i++){
-      initBalance = await web3.eth.getBalance(accounts[i]);
+// Staker redeem
+for(let i = 1; i<=30; i++){
+  initBalance = await web3.eth.getBalance(accounts[i]);
       await question.redeemStakedPayout().send({from: accounts[i],gas: maxGas});
       finBalance = await web3.eth.getBalance(accounts[i]);
       console.log('Staker reward: ', i, ': ', toEth(finBalance - initBalance));
