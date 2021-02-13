@@ -172,9 +172,6 @@ describe("Factory/Question Contract", () => {
 
     currentFakeTime = "01/31/2031 06:06:06";
     await advanceTimeToThis(currentFakeTime);
-    console.log(lib.fromUnix(await question.giveTimestamp().call()))
-    
-
 
     // Validation
     for(let i = 61; i<=70; i++)
