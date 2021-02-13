@@ -13,7 +13,7 @@ contract EIP1167_Question
     
     // Formulas formulas;
     
-    enum State {BETTING, REPORTING, RESOLVED}
+    enum State {BETTING, INACTIVE, REPORTING, RESOLVED}
     
     State public currState;
     address payable public owner;
@@ -22,8 +22,8 @@ contract EIP1167_Question
     uint256[] public bettingOptionBalances;
     uint256[] public reportingOptionBalances;
     uint256 public startTime;
-    uint256 public endTime;  
-    // uint256 public reportingEndTime; // Not necessary
+    uint256 public bettingEndTime;
+    uint256 public eventEndTime;  
     uint256 public bettingRightOptionBalance;
     uint256 public bettingWrongOptionsBalance;
     uint256 public reportingRightOptionBalance;
@@ -32,7 +32,6 @@ contract EIP1167_Question
     uint256 public marketPool;
     uint256 public validationPool;
     uint256 public stakeChangePool;
-    // uint256 public reportingPool; //Not necessary
     uint256 constant public MARKET_MAKER_FEE_PER = 100; // 1% for now. Represented in bp format
     uint256 public winningOptionId;
     bool public marketInitialized;
@@ -66,20 +65,23 @@ contract EIP1167_Question
          * @dev Maybe change this to a modifier ?
          */ 
          
-        if(currState == State.BETTING && fakeTimeStamp >= endTime)
+        if(currState == State.BETTING && block.timestamp >= bettingEndTime)
         {
-            currState = State.REPORTING;
+            currState = State.INACTIVE;
             
             emit phaseChange(address(this), currState);
         }
         
-        else if(currState == State.REPORTING && fakeTimeStamp >= endTime + 2 days)
+        else if(currState == State.INACTIVE && block.timeStamp >= eventEndTime)
+        {
+            currState = State.REPORTING;
+
+            emit phaseChange(address(this), currState);
+        }
+
+        else if(currState == State.REPORTING && block.timestamp >= (eventEndTime + 2 days))
         {
             currState = State.RESOLVED;
-            
-            // winningOptionId = formulas.calcWinningOption(reportingOptionBalances);
-            // (bettingRightOptionBalance, bettingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, bettingOptionBalances);
-            // (reportingRightOptionBalance, reportingWrongOptionsBalance) = formulas.calcRightWrongOptionsBalances(winningOptionId, reportingOptionBalances);
             
             // Library implementation
             winningOptionId = calcWinningOption(reportingOptionBalances); 
@@ -88,8 +90,6 @@ contract EIP1167_Question
             
             emit phaseChange(address(this), currState);
         }
-        
-        
         _;
     }
     
@@ -107,7 +107,7 @@ contract EIP1167_Question
     }
     
     
-    function init(address _owner, string calldata _description, string[] memory _options, uint256 _endTime) external
+    function init(address _owner, string calldata _description, string[] memory _options, uint256 _bettingEndTime, uint256 _eventEndTime) external
     {
         /***
          * @dev Function for creating a market
@@ -117,13 +117,11 @@ contract EIP1167_Question
         owner = payable(_owner);
         description = _description;
         options = _options;
-        // startTime = block.timestamp;
-        startTime = fakeTimeStamp;
-        endTime = _endTime;
-        // reportingEndTime = _endTime + 2 days; /// @dev Change this if necessary
+        startTime = block.timestamp;
+        bettingEndTime = _bettingEndTime;
+        eventEndTime = _eventEndTime;
         currState = State.BETTING;
         
-        /// @dev Check if fix sized arrays are better here.
         for(uint8 i = 0; i <= _options.length; ++i) // '<=' So that invalid option can also be accounted for.
         {
             bettingOptionBalances.push(0);
@@ -171,17 +169,12 @@ contract EIP1167_Question
          */
         // Can be called multiple times
         require(msg.value > 10**4, "Invalid amount to stake.");
-        hasVoted[msg.sender] = true;
 
+        hasVoted[msg.sender] = true;
         uint256 amount = msg.value;
 
-        // uint256 validationFeePer = formulas.calcValidationFeePer(block.timestamp, startTime, endTime);
-        // uint256 marketMakerFee = formulas.calcMarketMakerFee(MARKET_MAKER_FEE_PER, amount);
-        // uint256 validationFee = formulas.calcValidationFee(MARKET_MAKER_FEE_PER, validationFeePer, amount);
-        
         // Library implementation.
-        // uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, endTime);
-        uint256 validationFeePer = fakeTimeStamp.calcValidationFeePer(startTime, endTime);
+        uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, bettingEndTime);
         uint256 marketMakerFee = MARKET_MAKER_FEE_PER.calcMarketMakerFee(amount);
         uint256 validationFee = MARKET_MAKER_FEE_PER.calcValidationFee(validationFeePer, amount);
         uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
@@ -228,7 +221,6 @@ contract EIP1167_Question
     function stakeForReporting(uint256 _optionId) external payable changeState checkState(State.REPORTING)
     {
         // One time calling function
-        
         require(!hasVoted[msg.sender] && !hasStaked[msg.sender], "Sorry, you have already staked/voted!");
         hasStaked[msg.sender] = true;
         
@@ -289,12 +281,11 @@ contract EIP1167_Question
         emit payoutReceived(address(this), msg.sender, amount);
     }
     
-    
     // Waste functions
-    function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
-        return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
-    }
-    function changeFakeTimestamp(uint256 x) public {
-        fakeTimeStamp = x;
-    }
+    // function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
+    //     return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
+    // }
+    // function changeFakeTimestamp(uint256 x) public {
+    //     fakeTimeStamp = x;
+    // }
 }
