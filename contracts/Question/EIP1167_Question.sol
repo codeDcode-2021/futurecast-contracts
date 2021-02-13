@@ -32,6 +32,7 @@ contract EIP1167_Question
     uint256 public marketMakerPool;
     uint256 public marketPool;
     uint256 public validationPool;
+    uint256 public validationFeePool;
     uint256 public stakeChangePool;
     uint256 constant public MARKET_MAKER_FEE_PER = 100; // 1% for now. Represented in bp format
     uint256 public winningOptionId;
@@ -39,8 +40,8 @@ contract EIP1167_Question
     
     /// @dev mapping(address=>mapping(optionId=>stake))
     mapping(address => mapping(uint256=>uint256)) public stakeDetails; // Change the visibility to private after testing. For Betters AND Validators
-    mapping(address => bool) public hasVoted; // For betting purpose. Change the visibility to private after testing. For Betters/Voters.
-    mapping(address => bool) public hasStaked; // For open reporting purpose. Change the visibility to private. For Validators.
+    mapping(address => bool) public hasStaked; // For betting purpose. Change the visibility to private after testing. For Betters/Voters.
+    mapping(address => bool) public hasReported; // For open reporting purpose. Change the visibility to private. For Validators.
     
     
     
@@ -56,41 +57,6 @@ contract EIP1167_Question
         require(currState == _state, "This function is not allowed in the current phase of the market");
         _;
     }
-    
-    // modifier changeState()
-    // {
-    //     /***
-    //      * @notice Ideally, we want only the owner to change the state but if anything unforeseen happens to the owner then anyone should be able to change the state as long as it is fair.
-    //      * @dev Maybe change this to a modifier ?
-    //      */ 
-         
-    //     if(currState == State.BETTING && block.timestamp >= bettingEndTime && block.timestamp < eventEndTime)
-    //     {
-    //         currState = State.INACTIVE;
-            
-    //         emit phaseChange(address(this), currState);
-    //     }
-        
-    //     else if(currState == State.INACTIVE && block.timestamp >= eventEndTime && block.timestamp < (eventEndTime + 2 days))
-    //     {
-    //         currState = State.REPORTING;
-
-    //         emit phaseChange(address(this), currState);
-    //     }
-
-    //     else if(currState == State.REPORTING && block.timestamp >= (eventEndTime + 2 days))
-    //     {
-    //         currState = State.RESOLVED;
-            
-    //         // Library implementation
-    //         winningOptionId = calcWinningOption(reportingOptionBalances); 
-    //         (bettingRightOptionBalance, bettingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(bettingOptionBalances);
-    //         (reportingRightOptionBalance, reportingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(reportingOptionBalances);
-            
-    //         emit phaseChange(address(this), currState);
-    //     }
-    //     _;
-    // }
     
     modifier changeState()
     {
@@ -114,7 +80,7 @@ contract EIP1167_Question
             emit phaseChange(address(this), currState);
         }
 
-        if(currState == State.REPORTING && block.timestamp >= (reportingStartTime + 2 days))
+        if(currState == State.REPORTING && (validationPool.sub(validationFeePool)) >= marketPool.div(2))
         {
             currState = State.RESOLVED;
             
@@ -169,6 +135,26 @@ contract EIP1167_Question
         console.log("Owner of this contract is %s", owner);
     }
     
+    function publicVariables() external view returns(uint256[14] memory)
+    {
+        return [
+            startTime,
+            bettingEndTime,
+            eventEndTime,
+            reportingStartTime,
+            bettingRightOptionBalance,
+            bettingWrongOptionsBalance,
+            reportingRightOptionBalance,
+            reportingWrongOptionsBalance,
+            marketMakerPool,
+            marketPool,
+            validationPool,
+            validationFeePool,
+            stakeChangePool,
+            winningOptionId
+        ];
+    }
+
     function calcWinningOption(uint256[] memory _reportingOptionBalances) internal pure returns(uint256)
     {
         uint256 maxAmount = _reportingOptionBalances[_reportingOptionBalances.length-1];
@@ -205,7 +191,7 @@ contract EIP1167_Question
         // Can be called multiple times
         require(msg.value > 10**4, "Invalid amount to stake.");
 
-        hasVoted[msg.sender] = true;
+        hasStaked[msg.sender] = true;
         uint256 amount = msg.value;
 
         // Library implementation.
@@ -215,6 +201,7 @@ contract EIP1167_Question
         uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
         uint256 optionStakeAmount = stakeDetails[msg.sender][_optionId];
         marketMakerPool = marketMakerPool.add(marketMakerFee);
+        validationFeePool = validationFeePool.add(validationFee);
         validationPool = validationPool.add(validationFee);
         marketPool = marketPool.add(stakeAmount);
         
@@ -235,7 +222,7 @@ contract EIP1167_Question
          * @dev 1% is being deducted from _amount.
          */
 
-        require(hasVoted[msg.sender], "You haven't voted before!");
+        require(hasStaked[msg.sender], "You haven't voted before!");
         require(stakeDetails[msg.sender][_fromOptionId] >= _amount, "Stake change amount is higher than the staked amount !");
         require(_fromOptionId != _toOptionId, "Options are the same !");
         require(_amount > 100, "Insufficient stake change amount"); // Is this required ?
@@ -256,7 +243,7 @@ contract EIP1167_Question
     function stakeForReporting(uint256 _optionId) external payable changeState checkState(State.REPORTING)
     {
         // One time calling function
-        require(!hasVoted[msg.sender] && !hasStaked[msg.sender], "Sorry, you have already staked/voted!");
+        require(!hasStaked[msg.sender] && !hasReported[msg.sender], "Sorry, you have already staked/voted!");
         hasStaked[msg.sender] = true;
         
         validationPool = validationPool.add(msg.value);
@@ -268,9 +255,9 @@ contract EIP1167_Question
     
     function redeemStakedPayout() external payable changeState checkState(State.RESOLVED)
     {
-        require(hasVoted[msg.sender], "You have not participated in the betting market !");
+        require(hasStaked[msg.sender], "You have not participated in the betting market !");
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You lost your stake as you didn't predict the answer correctly !");
-        hasVoted[msg.sender] = false;
+        hasStaked[msg.sender] = false;
 
         // payout = userStake + (userStake*(bettingWrongOptionsBalance + stakeChangePool)/bettingRightOptionBalance)
         uint256 rewardAmount = stakeDetails[msg.sender][winningOptionId]
