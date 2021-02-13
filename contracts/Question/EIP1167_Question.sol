@@ -11,8 +11,6 @@ contract EIP1167_Question
     using SafeMath for uint256;
     using Formulas for uint256;
     
-    // Formulas formulas;
-    
     enum State {BETTING, INACTIVE, REPORTING, RESOLVED}
     
     State public currState;
@@ -80,8 +78,9 @@ contract EIP1167_Question
             emit phaseChange(address(this), currState);
         }
 
-        if(currState == State.REPORTING && block.timestamp > reportingStartTime + 2)
+        if(currState == State.REPORTING && validationPool.sub(validationFeePool) >= marketPool.div(2))
         {
+            /// @dev Atleast 50% of marketPool must be staked in reporting phase.
             currState = State.RESOLVED;
             
             // Library implementation
@@ -190,15 +189,6 @@ contract EIP1167_Question
     
     function stake(uint256 _optionId) external payable changeState checkState(State.BETTING) validOption(_optionId)
     {
-        /***
-         * @TODO
-         * Modify this function to calculate the decimal values properly.
-         * Test this function for rounding errors.
-         * Check if there is a better way to collect fees.
-         * Write separate formulas in Formulas contract for collecting fees and replace the below code.
-         * Uncomment the lines in this function after importing validationFee code.
-         * Check for gas costs.
-         */
         // Can be called multiple times
         require(msg.value > 10**4, "Invalid amount to stake.");
 
@@ -322,13 +312,9 @@ contract EIP1167_Question
     // function changeFakeTimestamp(uint256 x) public {
     //     fakeTimeStamp = x;
     // }
-    function getTimeStamp() external view returns(uint256)
-    {
-        return block.timestamp;
-    }
+    // function getTimeStamp() external view returns(uint256)
+    // {
+    //     return block.timestamp;
+    // }
 
-    function giveOptions() external view returns(string [] memory)
-    {
-        return options;
-    } 
 }

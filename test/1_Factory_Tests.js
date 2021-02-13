@@ -178,7 +178,7 @@ describe("Factory/Question Contract", () => {
     console.log(await question.currState().call());
 
     for(let i = 61; i<=70; i++)
-      await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
+      await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(30)});
 
     console.log(await question.currState().call());  
     console.log("Reaching here 3");
