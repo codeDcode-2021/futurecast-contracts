@@ -135,9 +135,9 @@ contract EIP1167_Question
         console.log("Owner of this contract is %s", owner);
     }
     
-    function publicVariables() external view returns(uint256[14] memory)
+    function publicVariables() external view returns(uint256[14] memory, uint256[][2] memory)
     {
-        return [
+        return ([
             startTime,
             bettingEndTime,
             eventEndTime,
@@ -152,7 +152,11 @@ contract EIP1167_Question
             validationFeePool,
             stakeChangePool,
             winningOptionId
-        ];
+        ],
+        [
+            bettingOptionBalances,
+            reportingOptionBalances
+        ]);
     }
 
     function calcWinningOption(uint256[] memory _reportingOptionBalances) internal pure returns(uint256)
