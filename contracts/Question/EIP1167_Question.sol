@@ -32,8 +32,8 @@ contract EIP1167_Question
     uint256 public validationPool;
     uint256 public validationFeePool;
     uint256 public stakeChangePool;
-    uint256 constant public MARKET_MAKER_FEE_PER = 100; // 1% for now. Represented in bp format
     uint256 public winningOptionId;
+    uint256 constant public MARKET_MAKER_FEE_PER = 100; // 1% for now. Represented in bp format
     bool public marketInitialized;
     
     /// @dev mapping(address=>mapping(optionId=>stake))
@@ -135,12 +135,15 @@ contract EIP1167_Question
     }
     
     function publicVariables() external view returns(
+        string memory,
         uint256[14] memory, 
         uint256[][2] memory,
-        string[][1] memory
+        string[] memory
         )
     {
-        return ([
+        return (
+            description,
+        [
             startTime,
             bettingEndTime,
             eventEndTime,
@@ -160,9 +163,8 @@ contract EIP1167_Question
             bettingOptionBalances,
             reportingOptionBalances
         ],
-        [
             options
-        ]);
+        );
     }
 
     function calcWinningOption(uint256[] memory _reportingOptionBalances) internal pure returns(uint256)

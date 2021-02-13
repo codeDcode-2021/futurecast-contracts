@@ -111,17 +111,20 @@ describe("Factory/Question Contract", () => {
     assert.strictEqual(_owner, owner);
   });
 
+  it.only("is setting the basic information[description, options, endTime] correctly.", async () => {
+    // let Description, allPublicVariables, OptionBalaces, optionsList;
+    let allPublicVariables = await question.publicVariables().call();
 
-  it("is setting the basic information[description, options, endTime] correctly.", async () => {
-    let _description = await question.description().call();
-    let _options = await question.giveOptions().call();
-    let _endTime = await question.endTime().call();
+    console.log("data: "+allPublicVariables[0]);
+    console.log("data: "+allPublicVariables[1]);
+    // let _options = allPublicVariables.options;
+    // let _endTime = optionsList.options;
 
-    assert.strictEqual(_description, description);
-    assert.strictEqual(lib.fromUnix(_endTime), endTime);
-    for (let i = 0; i < options.length; i++) {
-      assert.strictEqual(options[i], _options[i]);
-    }
+    // assert.strictEqual(_description, description);
+    // assert.strictEqual(lib.fromUnix(_endTime), endTime);
+    // for (let i = 0; i < options.length; i++) {
+      // assert.strictEqual(options[i], _options[i]);
+    // }
   });
 
 
