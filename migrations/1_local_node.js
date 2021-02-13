@@ -2,8 +2,8 @@ const fs = require('fs-extra');
 const { toUnix } = require('../helper/t_conversions');
 const { ethers } = require("hardhat");
 
-const compiledFactory = require("./../artifacts/contracts/Factory/Factory.sol/Factory.json");
-const compiledQuestion = require("./../artifacts/contracts/Question/EIP1167_Question.sol/EIP1167_Question.json");
+const compiledFactory = require("../artifacts/contracts/Factory/Factory.sol/Factory.json");
+const compiledQuestion = require("../artifacts/contracts/Question/EIP1167_Question.sol/EIP1167_Question.json");
 
 main = async()=>{
   let accounts = await ethers.getSigners();
@@ -21,13 +21,13 @@ main = async()=>{
   }
   
   // Making the integ/info.json
-  var info = {
-    factoryAddress: factory.address,
-    factoryInterface: compiledFactory.abi,
-    questionInterface: compiledQuestion.abi
-  }
-  fs.ensureDirSync("./integ");
-  fs.outputJSONSync("./integ/info.json", info);     
+  // var info = {
+  //   factoryAddress: factory.address,
+  //   factoryInterface: compiledFactory.abi,
+  //   questionInterface: compiledQuestion.abi
+  // }
+  // fs.ensureDirSync("./integ");
+  // fs.outputJSONSync("./integ/info.json", info);     
 }
 
 main();
