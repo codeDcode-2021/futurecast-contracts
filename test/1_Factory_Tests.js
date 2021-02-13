@@ -26,7 +26,7 @@ const questionInstance = async (deployedAddress) => {
 let factory;
 let question;
 let accounts, admin, owner, user;
-let description, options, endTime;
+let description, options, bettingEndTime, eventEndTime, newTime;
 let deployedQuestionAddress;
 
 
@@ -74,10 +74,11 @@ beforeEach(async () => {
 
   description = "Who will win World Cup 2030";
   options = ["India", "Australia"];
-  endTime = "12/31/2030 05:05:05";
+  bettingEndTime = "12/31/2030 05:05:05";
+  eventEndTime = "01/31/2031 05:05:05";
 
   tx = await factory
-    .createQuestion(description, options, lib.toUnix(endTime))
+    .createQuestion(description, options, lib.toUnix(bettingEndTime), lib.toUnix(eventEndTime))
     .send({ from: owner, gas: maxGas}); // Added gas: maxGas
   // console.log('Amount to deploy: ', tx.gasUsed)
 
@@ -150,17 +151,22 @@ describe("Factory/Question Contract", () => {
     for(let i = 31; i<=60; i++)
       await question.stake(1).send({from: accounts[i],gas: maxGas,value: toWei(10)});
 
-    currentFakeTime = "01/01/2031 05:05:59";
-    await question.changeFakeTimestamp(lib.toUnix(currentFakeTime))
-    .send({from: user, gas: maxGas});
+    // currentFakeTime = "01/01/2031 05:05:59";
+    // await question.changeFakeTimestamp(lib.toUnix(currentFakeTime))
+    // .send({from: user, gas: maxGas});
+
+    newTime = "02/01/2031 05:05:59";
+    await advanceTime(lib.toUnix(newTime));
 
     // Validation
     for(let i = 61; i<=70; i++)
       await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
 
     // Phase over + Reward Distribution
-    currentFakeTime = "01/07/2031 05:05:59";
-    await question.changeFakeTimestamp(lib.toUnix(currentFakeTime)).send({from: user, gas: maxGas});
+    //currentFakeTime = "01/07/2031 05:05:59";
+    // await question.changeFakeTimestamp(lib.toUnix(currentFakeTime)).send({from: user, gas: maxGas});
+    newTime = "02/03/2031 05:06:59";
+    await advanceTime(lib.toUnix(newTime));
     console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
 
     // Staker redeem
@@ -194,23 +200,23 @@ describe("Factory/Question Contract", () => {
   });
 
 
-  it('computes validation fee correctly.', async()=>{  
-    startTime = lib.toUnix("01/01/2021 00:00:00")
-    endTime = lib.toUnix("12/01/2021 00:00:00")
-    currentTime = lib.toUnix("01/01/2021 00:00:05")
+  // it('computes validation fee correctly.', async()=>{  
+  //   startTime = lib.toUnix("01/01/2021 00:00:00")
+  //   endTime = lib.toUnix("12/01/2021 00:00:00")
+  //   currentTime = lib.toUnix("01/01/2021 00:00:05")
     
-    tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-    console.log('At month 0:', 'fee: ', tx/100);
+  //   tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+  //   console.log('At month 0:', 'fee: ', tx/100);
     
-    for(let i = 2; i<=11; i++){
-      currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
-      tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-      console.log('At month ', i, 'fee: ', tx/100);
-    }
+  //   for(let i = 2; i<=11; i++){
+  //     currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
+  //     tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+  //     console.log('At month ', i, 'fee: ', tx/100);
+  //   }
     
-    currentTime = lib.toUnix("11/30/2021 23:23:59")
-    tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-    console.log('At month 12:', 'fee: ', tx/100);
-  });
+  //   currentTime = lib.toUnix("11/30/2021 23:23:59")
+  //   tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+  //   console.log('At month 12:', 'fee: ', tx/100);
+  // });
 
 });

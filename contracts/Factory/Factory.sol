@@ -16,14 +16,14 @@ contract Factory
         require(_options.length > 1 && _options.length < 6, "Number of options must lie between 2 and 5 (inclusive)");
         require(keccak256(abi.encodePacked(_question)) != keccak256(""), "Empty questions not allowed");
         
-        for(uint8 i = 0; i < _numOptions; ++i)
+        for(uint8 i = 0; i < (_options.length); ++i)
         {
             require(keccak256(abi.encodePacked(_options[i])) != keccak256(""), "Empty options not allowed");
         }
         
-        require(_bettingEndTime > block.timestamp && _eventEndTime > block.timestamp, "Timelimit(s) not valid");
+        require((_bettingEndTime > block.timestamp) && (_eventEndTime > block.timestamp), "Timelimit(s) not valid");
         /// @dev Have a discussion about the following condition.
-        require(_bettingEndTime != _eventEndTime, "Betting end time and event end time can't be the same !");
+        require(_bettingEndTime < _eventEndTime, "Betting end time can't be smaller than or equal to event end!");
         _;
     }
     

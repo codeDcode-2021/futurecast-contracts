@@ -72,7 +72,7 @@ contract EIP1167_Question
             emit phaseChange(address(this), currState);
         }
         
-        else if(currState == State.INACTIVE && block.timeStamp >= eventEndTime)
+        else if(currState == State.INACTIVE && block.timestamp >= eventEndTime)
         {
             currState = State.REPORTING;
 

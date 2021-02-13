@@ -27,7 +27,7 @@ const questionInstance = async (deployedAddress) => {
 let factory;
 let question;
 let accounts, admin, owner, user;
-let description, options, endTime;
+let description, options, bettingEndTime, eventEndTime;
 let deployedQuestionAddress;
 
 
@@ -75,13 +75,13 @@ beforeEach(async () => {
 
   description = "Who will win World Cup 2030";
   options = ["India", "Australia"];
-  endTime = "12/31/2030 05:05:05";
+  bettingEndTime = "12/31/2030 05:05:05";
+  eventEndTime = "01/31/2031 05:05:05";
 
   tx = await factory
-    .createQuestion(description, options, lib.toUnix(endTime))
+    .createQuestion(description, options, lib.toUnix(bettingEndTime), lib.toUnix(eventEndTime))
     .send({ from: owner, gas: maxGas}); // Added gas: maxGas
   // console.log('Amount to deploy: ', tx.gasUsed)
-
 
   deployedQuestionAddress = await factory.questionAddresses(0).call();
   question = await questionInstance(deployedQuestionAddress);
@@ -90,9 +90,15 @@ beforeEach(async () => {
 describe("Test for require statements in functions 'Stake' and 'Init'", ()=>{
 
     it("Can't initialize a market again", async()=>{
-      // console.log(await question.marketInitialized().call())
+      console.log(await question.marketInitialized().call())
       await truffleAssert.reverts(
-        question.init(accounts[0], "Who will be the president of the USA ?", ["Donald Trump", "Joe Biden"], lib.toUnix("12/31/2030 05:05:05")).send({from: accounts[0], gas: maxGas}),
+        question.init(
+          accounts[0], 
+          "Who will be the president of the USA ?", 
+          ["Donald Trump", "Joe Biden"], 
+          lib.toUnix(bettingEndTime),
+          lib.toUnix(eventEndTime)
+          ).send({from: accounts[0], gas: maxGas}),
         "Can't change the market parameters once initialized !"
       );
     });
@@ -108,7 +114,7 @@ describe("Test for require statements in functions 'Stake' and 'Init'", ()=>{
 describe("Test for require statements in function 'changeStake'", ()=>{
     it("Can't change stake if not participated in voting yet", async()=>{
         await truffleAssert.reverts(
-          question.changeStake(0, 1, 200).send({from: accounts[0], gas: maxGas}),
+          question.changeStake(0, 1, toWei(200)).send({from: accounts[0], gas: maxGas}),
           "You haven't voted before!"
         );
       });
@@ -132,7 +138,7 @@ describe("Test for require statements in function 'changeStake'", ()=>{
     it("Stake amount must be sufficient", async()=>{
     question.stake(1).send({from: accounts[0],gas: maxGas,value: toWei(10)}),
     await truffleAssert.reverts(
-        question.changeStake(1, 0, 0).send({from: accounts[0], gas: maxGas}),
+        question.changeStake(1, 0, 100).send({from: accounts[0], gas: maxGas}),
         "Insufficient stake change amount"
         );
     });
