@@ -161,9 +161,9 @@ describe("Factory/Question Contract", () => {
     console.log('Assert passed.');
   });
 
-  it.only('Small market simulation', async()=>{ // Changes from "allows validators to stake and validate."
+  it('Small market simulation', async()=>{ // Changes from "allows validators to stake and validate."
     // Staking
-    console.log("Reaching here.");
+    console.log("Reaching here 1");
     for(let i = 1; i<=30; i++)
       await question.stake(0).send({from: accounts[i],gas: maxGas,value: toWei(10)});
     
@@ -180,6 +180,7 @@ describe("Factory/Question Contract", () => {
     for(let i = 61; i<=70; i++)
       await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
 
+    console.log(await question.currState().call());  
     console.log("Reaching here 3");
 
     // Phase over + Reward Distribution

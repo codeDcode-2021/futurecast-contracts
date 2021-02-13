@@ -143,4 +143,14 @@ describe("Test for require statements in function 'changeStake'", ()=>{
         );
     });
 });
+
+describe('Test for stakeForReporting function require statements', ()=>{
+    it("Can't stake during reporting phase if user has already staked && reported earlier", async()=>{
+      console.log(await question.currState.call()),
+        await truffleAssert.reverts(
+          question.stakeForReporting(0).send({from: accounts[0], gas: maxGas, value: toWei(5)}),
+          "Sorry, you have already staked/voted!"
+        );
+      });
+});
     

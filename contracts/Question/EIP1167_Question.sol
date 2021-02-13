@@ -80,7 +80,7 @@ contract EIP1167_Question
             emit phaseChange(address(this), currState);
         }
 
-        if(currState == State.REPORTING && (validationPool.sub(validationFeePool)) >= marketPool.div(2))
+        if(currState == State.REPORTING && block.timestamp > reportingStartTime + 2)
         {
             currState = State.RESOLVED;
             
@@ -244,6 +244,7 @@ contract EIP1167_Question
         emit stakeChanged(address(this), msg.sender, _fromOptionId, _toOptionId, _amount);
     }
     
+    // This function is for staking during the reporting phase:
     function stakeForReporting(uint256 _optionId) external payable changeState checkState(State.REPORTING)
     {
         // One time calling function
@@ -318,4 +319,9 @@ contract EIP1167_Question
     {
         return block.timestamp;
     }
+
+    function giveOptions() external view returns(string [] memory)
+    {
+        return options;
+    } 
 }
