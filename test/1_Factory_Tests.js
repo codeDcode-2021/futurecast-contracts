@@ -90,8 +90,8 @@ beforeEach(async () => {
 
   description = "Who will win World Cup 2030";
   options = ["India", "Australia"];
-  bettingEndTime = "10/10/2030 05:05:05";
-  eventEndTime = "10/10/2031 05:05:05";
+  bettingEndTime = "10/10/2030 00:00:00";
+  eventEndTime = "10/10/2031 00:00:00";
 
   tx = await factory
     .createQuestion(description, options, lib.toUnix(bettingEndTime), lib.toUnix(eventEndTime))
@@ -170,16 +170,17 @@ describe("Factory/Question Contract", () => {
     for(let i = 31; i<=60; i++)
       await question.stake(1).send({from: accounts[i],gas: maxGas,value: toWei(10)});
 
-    currentFakeTime = "01/31/2031 06:06:06";
-    await advanceTimeToThis(currentFakeTime);
-
+      
     // Validation
+    currentFakeTime = "10/15/2030 06:06:06";
+    await advanceTimeToThis(currentFakeTime);
+    
     for(let i = 61; i<=70; i++)
       await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
 
 
     // Phase over + Reward Distribution
-    currentFakeTime = "01/02/2031 08:05:59";
+    currentFakeTime = "10/15/2031 08:05:59";
     await advanceTimeToThis(currentFakeTime);
     // console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
 
