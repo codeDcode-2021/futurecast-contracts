@@ -24,6 +24,7 @@ contract EIP1167_Question
     uint256 public startTime;
     uint256 public bettingEndTime;
     uint256 public eventEndTime;  
+    uint256 public reportingStartTime;
     uint256 public bettingRightOptionBalance;
     uint256 public bettingWrongOptionsBalance;
     uint256 public reportingRightOptionBalance;
@@ -56,6 +57,41 @@ contract EIP1167_Question
         _;
     }
     
+    // modifier changeState()
+    // {
+    //     /***
+    //      * @notice Ideally, we want only the owner to change the state but if anything unforeseen happens to the owner then anyone should be able to change the state as long as it is fair.
+    //      * @dev Maybe change this to a modifier ?
+    //      */ 
+         
+    //     if(currState == State.BETTING && block.timestamp >= bettingEndTime && block.timestamp < eventEndTime)
+    //     {
+    //         currState = State.INACTIVE;
+            
+    //         emit phaseChange(address(this), currState);
+    //     }
+        
+    //     else if(currState == State.INACTIVE && block.timestamp >= eventEndTime && block.timestamp < (eventEndTime + 2 days))
+    //     {
+    //         currState = State.REPORTING;
+
+    //         emit phaseChange(address(this), currState);
+    //     }
+
+    //     else if(currState == State.REPORTING && block.timestamp >= (eventEndTime + 2 days))
+    //     {
+    //         currState = State.RESOLVED;
+            
+    //         // Library implementation
+    //         winningOptionId = calcWinningOption(reportingOptionBalances); 
+    //         (bettingRightOptionBalance, bettingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(bettingOptionBalances);
+    //         (reportingRightOptionBalance, reportingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(reportingOptionBalances);
+            
+    //         emit phaseChange(address(this), currState);
+    //     }
+    //     _;
+    // }
+    
     modifier changeState()
     {
         /***
@@ -70,14 +106,15 @@ contract EIP1167_Question
             emit phaseChange(address(this), currState);
         }
         
-        else if(currState == State.INACTIVE && block.timestamp >= eventEndTime)
+        if(currState == State.INACTIVE && block.timestamp >= eventEndTime)
         {
             currState = State.REPORTING;
+            reportingStartTime = block.timestamp; // New line
 
             emit phaseChange(address(this), currState);
         }
 
-        else if(currState == State.REPORTING && block.timestamp >= (eventEndTime + 2 days))
+        if(currState == State.REPORTING && block.timestamp >= (reportingStartTime + 2 days))
         {
             currState = State.RESOLVED;
             
@@ -88,16 +125,9 @@ contract EIP1167_Question
             
             emit phaseChange(address(this), currState);
         }
-
-        // When the event is happening but staking is not allowed, state is INACTIVE
-        else if(block.timestamp > bettingEndTime && block.timestamp < eventEndTime){
-            currState = State.INACTIVE;
-
-            emit phaseChange(address(this), currState);
-        }
         _;
     }
-    
+
     modifier onlyOwner
     {
         require(msg.sender == owner, "Only owner can call this function");
@@ -122,7 +152,6 @@ contract EIP1167_Question
         owner = payable(_owner);
         description = _description;
         options = _options;
-        // startTime = block.timestamp;
         startTime = block.timestamp;
         bettingEndTime = _bettingEndTime;
         eventEndTime = _eventEndTime;
@@ -180,7 +209,7 @@ contract EIP1167_Question
         uint256 amount = msg.value;
 
         // Library implementation.
-        uint256 validationFeePer = block.timestamp.calcValidationFeePer(startTime, bettingEndTime);
+        uint256 validationFeePer = (block.timestamp).calcValidationFeePer(startTime, bettingEndTime);
         uint256 marketMakerFee = MARKET_MAKER_FEE_PER.calcMarketMakerFee(amount);
         uint256 validationFee = MARKET_MAKER_FEE_PER.calcValidationFee(validationFeePer, amount);
         uint256 stakeAmount = amount.sub(marketMakerFee.add(validationFee));
@@ -294,4 +323,8 @@ contract EIP1167_Question
     // function changeFakeTimestamp(uint256 x) public {
     //     fakeTimeStamp = x;
     // }
+    function getTimeStamp() external view returns(uint256)
+    {
+        return block.timestamp;
+    }
 }

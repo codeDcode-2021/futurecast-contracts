@@ -170,14 +170,17 @@ describe("Factory/Question Contract", () => {
     for(let i = 31; i<=60; i++)
       await question.stake(1).send({from: accounts[i],gas: maxGas,value: toWei(10)});
 
-      
+    console.log("Reaching here 2");
     // Validation
-    currentFakeTime = "10/15/2030 06:06:06";
+    currentFakeTime = "10/10/2031 01:00:00";
     await advanceTimeToThis(currentFakeTime);
-    
+    console.log(await question.getTimeStamp().call());
+    console.log(await question.currState().call());
+
     for(let i = 61; i<=70; i++)
       await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
 
+    console.log("Reaching here 3");
 
     // Phase over + Reward Distribution
     currentFakeTime = "10/15/2031 08:05:59";
