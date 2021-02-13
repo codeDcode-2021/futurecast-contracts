@@ -88,6 +88,13 @@ contract EIP1167_Question
             
             emit phaseChange(address(this), currState);
         }
+
+        // When the event is happening but staking is not allowed, state is INACTIVE
+        else if(block.timestamp > bettingEndTime && block.timestamp < eventEndTime){
+            currState = State.INACTIVE;
+
+            emit phaseChange(address(this), currState);
+        }
         _;
     }
     
