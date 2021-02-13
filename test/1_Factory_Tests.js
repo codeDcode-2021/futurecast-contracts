@@ -59,6 +59,22 @@ let advanceTimeAndBlock = async (time) => {
   return Promise.resolve(await web3.eth.getBlock("latest"));
 };
 
+let advanceTimeToThis = async(futureTime)=>{
+  try {
+    const blockNumber = await web3.eth.getBlockNumber();
+    const block = await web3.eth.getBlock(blockNumber);
+    currentTime = block.timestamp;
+    
+    futureTime = lib.toUnix(futureTime);
+    diff = futureTime - currentTime;
+    await advanceTimeAndBlock(diff);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
   admin = accounts[0];
@@ -82,14 +98,29 @@ beforeEach(async () => {
     .send({ from: owner, gas: maxGas}); // Added gas: maxGas
   // console.log('Amount to deploy: ', tx.gasUsed)
 
-
   deployedQuestionAddress = await factory.questionAddresses(0).call();
   question = await questionInstance(deployedQuestionAddress);
 });
 
-let SECONDS_IN_A_DAY = 86400;
+
+
 
 describe("Factory/Question Contract", () => {
+  // it.only('a', async ()=>{
+  //   newTime = "02/01/2031 05:05:59";
+  //   await advanceTimeToThis(newTime);
+
+  //   await
+
+  //   const blockNumber = await web3.eth.getBlockNumber();
+  //   const t = await web3.eth.getBlock(blockNumber);
+  //   currentTime = t.timestamp;
+
+  //   console.log(lib.fromUnix(currentTime));
+
+
+  // });
+
   // it("is setting the owner correctly.", async () => {
   //   let _owner = await question.owner().call();
   //   assert.strictEqual(_owner, owner);
@@ -153,27 +184,26 @@ describe("Factory/Question Contract", () => {
     for(let i = 31; i<=60; i++)
       await question.stake(1).send({from: accounts[i],gas: maxGas,value: toWei(10)});
 
-    // currentFakeTime = "01/01/2031 05:05:59";
-    // await question.changeFakeTimestamp(lib.toUnix(currentFakeTime))
-    // .send({from: user, gas: maxGas});
+    currentFakeTime = "02/01/2031 06:05:59";
+    await advanceTimeToThis(currentFakeTime);
 
-    newTime = "02/01/2031 05:05:59";
-    await advanceTimeAndBlock(100*SECONDS_IN_A_DAY); // THIS WILL FORWARD THE TIME TO 100 DAYS
+    // newTime = "02/01/2031 05:05:59";
+    // await advanceTimeAndBlock(100*SECONDS_IN_A_DAY); // THIS WILL FORWARD THE TIME TO 100 DAYS
     
-// Validation
-for(let i = 61; i<=70; i++)
-await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
+    // Validation
+    for(let i = 61; i<=70; i++)
+    await question.stakeForReporting(0).send({from: accounts[i], gas: maxGas, value: toWei(10)});
 
-// Phase over + Reward Distribution
-//currentFakeTime = "01/07/2031 05:05:59";
-// await question.changeFakeTimestamp(lib.toUnix(currentFakeTime)).send({from: user, gas: maxGas});
-newTime = "02/03/2031 05:06:59";
-await advanceTimeAndBlock(lib.toUnix(newTime)); // UPDATE THIS STATEMENT APPROPRIATELY.
-console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
+    // Phase over + Reward Distribution
+    currentFakeTime = "02/03/2031 08:05:59";
+    await advanceTimeToThis(currentFakeTime);
+// newTime = "02/03/2031 05:06:59";
+// await advanceTimeAndBlock(lib.toUnix(newTime)); // UPDATE THIS STATEMENT APPROPRIATELY.
+// console.log('Question balance: ', toEth(await web3.eth.getBalance(deployedQuestionAddress)));
 
-// Staker redeem
-for(let i = 1; i<=30; i++){
-  initBalance = await web3.eth.getBalance(accounts[i]);
+    // Staker redeem
+    for(let i = 1; i<=30; i++){
+      initBalance = await web3.eth.getBalance(accounts[i]);
       await question.redeemStakedPayout().send({from: accounts[i],gas: maxGas});
       finBalance = await web3.eth.getBalance(accounts[i]);
       console.log('Staker reward: ', i, ': ', toEth(finBalance - initBalance));

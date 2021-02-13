@@ -90,7 +90,7 @@ beforeEach(async () => {
 describe("Test for require statements in functions 'Stake' and 'Init'", ()=>{
 
     it("Can't initialize a market again", async()=>{
-      console.log(await question.marketInitialized().call())
+      console.log(await question.marketInitialized().call());
       await truffleAssert.reverts(
         question.init(
           accounts[0], 

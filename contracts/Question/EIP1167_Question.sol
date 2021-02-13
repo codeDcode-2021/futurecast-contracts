@@ -47,9 +47,7 @@ contract EIP1167_Question
     event stakeChanged(address indexed _market, address indexed _user, uint256 _fromOptionId, uint256 _toOptionId, uint256 _amount); // Make _market indexed ?
     event staked(address indexed _market, address indexed _user, uint256 _optionId, uint256 _amount);
     event payoutReceived(address indexed _market, address indexed _user, uint256 _amount);
-    
-    
-    uint256 public fakeTimeStamp = block.timestamp;
+
 
     
     modifier checkState(State _state)
@@ -117,6 +115,7 @@ contract EIP1167_Question
         owner = payable(_owner);
         description = _description;
         options = _options;
+        // startTime = block.timestamp;
         startTime = block.timestamp;
         bettingEndTime = _bettingEndTime;
         eventEndTime = _eventEndTime;
