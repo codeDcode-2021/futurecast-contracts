@@ -1,5 +1,5 @@
 const Web3 = require('web3');
-const HDWalletProvider = require('truffle-hdwallet-provider');
+// const HDWalletProvider = require('truffle-hdwallet-provider');
 const fs = require('fs-extra');
 
 const compiledFactory = require('../artifacts/contracts/Factory/Factory.sol/Factory.json');
@@ -7,14 +7,16 @@ const compiledQuestion = require("../artifacts/contracts/Question/EIP1167_Questi
 
 const { toUnix, fromUnix } = require('../helper/t_conversions');
 
-const seedPhrase = 'YOUR-SEED-PHRASE';
-// a group of words that allow access to a cryptocurrency wallet
-const rpcEndpoint = 'RPC-ENDPOINT';
-// an endpint for connecting your web3 instance wallet and the blockchain node
+// const seedPhrase = 'YOUR-SEED-PHRASE';
+// // a group of words that allow access to a cryptocurrency wallet
+// const rpcEndpoint = 'RPC-ENDPOINT';
+// // an endpint for connecting your web3 instance wallet and the blockchain node
 
-const provider = new HDWalletProvider(seedPhrase, rpcEndpoint);
-const web3 = new Web3(provider);
-const minGas = 10**7;
+const hre = require("hardhat");
+
+// const provider = new HDWalletProvider(seedPhrase, rpcEndpoint);
+const web3 = new Web3(hre.network.provider);
+const minGas = 9500000;
 
 
 
@@ -39,22 +41,23 @@ const deploy = async()=>{
     tx = await factory.methods.createQuestion(
       description, options, toUnix(bettingEndTime), toUnix(eventEndTime)
       ).send({from: accounts[0], gas: minGas});
-      console.log(tx);
-    }
-    
-    // printing important information
-    try {
-      var info = {
-        factoryAddress: factory.options.address,
-        factoryInterface: compiledFactory.abi,
-        questionInterface: compiledQuestion.abi
-      }  
-      fs.ensureDirSync("./integ");
-      fs.outputJSONSync("./integ/info.json", info);
-    } catch (error) {
-      console.log(error);
-    }
-    return process.exit(1);
+    console.log(tx);
+  }
+  console.log("all done");    
+
+  // printing important information
+    // try {
+    //   var info = {
+    //     factoryAddress: factory.options.address,
+    //     factoryInterface: compiledFactory.abi,
+    //     questionInterface: compiledQuestion.abi
+    //   }  
+    //   fs.ensureDirSync("./integ");
+    //   fs.outputJSONSync("./integ/info.json", info);
+    // } catch (error) {
+    //   console.log(error);
+    // }
+    return process.exit(0);
   };
   
   deploy();
