@@ -12,6 +12,11 @@ contracts/Question/EIP1167_Question.sol
  - `npm run test`
  - `npm run lnode`
  - `npm run ldeploy`
+ - `npm run any:deploy`
+
+## Global deploy instructions
+ - **Get rpcEndpoint and seed-phrase**: Edit `migrations/2_any.js` file, and enter appropriate credentials.
+ - **`npm run any:deploy`**
 
 ## **Front end: Instructions for running locally**
  - `npm run lnode`: Start a local hardhat node in this terminal
