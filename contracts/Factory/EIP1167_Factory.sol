@@ -2,15 +2,18 @@
 pragma solidity >=0.7.0 <0.8.0;
 pragma abicoder v2;
 
+import "../Utils/CloneFactory.sol";
 import "../Question/EIP1167_Question.sol";
-
-contract Factory
+ 
+contract EIP1167_Factory is CloneFactory 
 {
+    address public immutable admin; /// @dev May change this to array/mapping to allow bunch of admins.
+    address public implementation; /// @dev Market implementation contract. 
     address[] public questionAddresses;
     
-    /// @dev Made changes here. Added betting end time and event end time. Is indexing required here ?
     event newQuestionCreated(address indexed _question, string _description, uint256 _bettingEndTime, uint256 _eventEndTime);
     
+    /// @dev To check if a market is valid or not.
     modifier validParams(string memory _question, string[] memory _options, uint256 _bettingEndTime, uint256 _eventEndTime)
     {
         require(_options.length > 1 && _options.length < 6, "Number of options must lie between 2 and 5 (inclusive)");
@@ -27,11 +30,26 @@ contract Factory
         _;
     }
     
+    /// @dev Sets the original Market contract during deployment of MarketFactory contract
+    constructor(address _implementation)
+    {
+        admin = msg.sender;
+        implementation = _implementation;     
+    }
+    
+    /// @dev Set's implementation (Market) contract
+    function setImplementation(address _implementation) external
+    {
+        require(msg.sender == admin, "Only admin can change the implementation contract");
+        implementation = _implementation;
+    }
+    
     function createQuestion(string calldata _description, string[] calldata _options, uint256 _bettingEndTime, uint256 _eventEndTime) external validParams(_description,  _options, _bettingEndTime, _eventEndTime)
     {
-        EIP1167_Question newQuestion = new EIP1167_Question();
-        newQuestion.init(msg.sender, _description, _options, _bettingEndTime, _eventEndTime);
+        address newQuestion = createClone(implementation);
+        EIP1167_Question(newQuestion).init(msg.sender, _description, _options, _bettingEndTime, _eventEndTime);
         questionAddresses.push(address(newQuestion));
+        
         emit newQuestionCreated(address(newQuestion), _description, _bettingEndTime, _eventEndTime);
     }
 
@@ -40,4 +58,5 @@ contract Factory
     {
         return questionAddresses;
     }
+        
 }
