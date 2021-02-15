@@ -175,7 +175,7 @@ describe("Factory/Question Contract", () => {
     // Validation
     currentFakeTime = "10/10/2031 01:00:00";
     await advanceTimeToThis(currentFakeTime);
-    console.log(await question.getTimeStamp().call());
+    // console.log(await question.getTimeStamp().call());
     console.log(await question.currState().call());
 
     for(let i = 61; i<=70; i++)
