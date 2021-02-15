@@ -109,7 +109,7 @@ describe("Factory/Question Contract", () => {
     assert.strictEqual(_owner, owner);
   });
 
-  it.only("is setting the basic information[description, options, endTime] correctly.", async () => {
+  it("is setting the basic information[description, options, endTime] correctly.", async () => {
     let allPublicVariables = await question.publicVariables().call();
 
     let _options = allPublicVariables[3];
