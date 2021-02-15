@@ -15,7 +15,7 @@ const provider = ganache.provider(optionSettings);
 const Web3 = require("web3");
 const web3 = new Web3(provider);
 
-const compiledFactory = require("./../artifacts/contracts/Factory/Factory.sol/Factory.json");
+const compiledFactory = require("./../artifacts/contracts/Factory/EIP1167_Factory.sol/EIP1167_Factory.json");
 const compiledQuestion = require("./../artifacts/contracts/Question/EIP1167_Question.sol/EIP1167_Question.json");
 const lib = require("../helper/t_conversions");
 
@@ -62,43 +62,51 @@ let advanceTimeAndBlock = async (time) => {
 
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
-  admin = accounts[0];
-  owner = accounts[1];
-  user = accounts[2];
+    admin = accounts[0];
+    owner = accounts[1];
+    user = accounts[2];
 
-  factoryInstance = await new web3.eth.Contract(compiledFactory.abi)
-    .deploy({
-      data: compiledFactory.bytecode,
+    // Deploying EIP1167_Question contract
+    const EIP1167_Question = await new web3.eth.Contract(compiledQuestion.abi)
+    .deploy({ data: compiledQuestion.bytecode})
+    .send({ from: accounts[0], gas: maxGas});
+    // console.log("Question contract is successfully deployed at: ", EIP1167_Question.options.address);
+    
+    // Deploying EIP1167_Factory contract
+    const factoryInstance = await new web3.eth.Contract(compiledFactory.abi)
+    .deploy({ 
+      data: compiledFactory.bytecode, 
+      arguments: [EIP1167_Question.options.address]
     })
-    .send({ from: admin, gas: maxGas}); // Added gas: maxGas
-  factory = factoryInstance.methods;
+    .send({ from: accounts[0], gas: maxGas });
+    // console.log("Factory contract is successfully deployed at: ", factoryInstance.options.address);
+    factory = factoryInstance.methods;
 
-  description = "Who will win World Cup 2030";
-  options = ["India", "Australia"];
-  bettingEndTime = "12/31/2030 05:05:05";
-  eventEndTime = "01/31/2031 05:05:05";
+    description = "Who will win World Cup 2030";
+    options = ["India", "Australia"];
+    bettingEndTime = "10/10/2030 00:00:00";
+    eventEndTime = "10/10/2031 00:00:00";
+  
+    tx = await factory.createQuestion(
+    description, options, lib.toUnix(bettingEndTime), lib.toUnix(eventEndTime)
+    ).send({from: accounts[1], gas: maxGas});
 
-  tx = await factory
-    .createQuestion(description, options, lib.toUnix(bettingEndTime), lib.toUnix(eventEndTime))
-    .send({ from: owner, gas: maxGas}); // Added gas: maxGas
-  // console.log('Amount to deploy: ', tx.gasUsed)
-
-  deployedQuestionAddress = await factory.questionAddresses(0).call();
-  question = await questionInstance(deployedQuestionAddress);
+    deployedQuestionAddress = await factory.questionAddresses(0).call();
+    question = await questionInstance(deployedQuestionAddress);
 });
 
 describe("Test for require statements in functions 'Stake' and 'Init'", ()=>{
 
     it("Can't initialize a market again", async()=>{
-      console.log(await question.marketInitialized().call());
+      // console.log(await question.marketInitialized().call()); // Should return true
       await truffleAssert.reverts(
         question.init(
-          accounts[0], 
+          user, 
           "Who will be the president of the USA ?", 
           ["Donald Trump", "Joe Biden"], 
           lib.toUnix(bettingEndTime),
           lib.toUnix(eventEndTime)
-          ).send({from: accounts[0], gas: maxGas}),
+          ).send({from: user, gas: maxGas}),
         "Can't change the market parameters once initialized !"
       );
     });
@@ -144,13 +152,14 @@ describe("Test for require statements in function 'changeStake'", ()=>{
     });
 });
 
-describe('Test for stakeForReporting function require statements', ()=>{
-    it("Can't stake during reporting phase if user has already staked && reported earlier", async()=>{
-      console.log(await question.currState.call()),
-        await truffleAssert.reverts(
-          question.stakeForReporting(0).send({from: accounts[0], gas: maxGas, value: toWei(5)}),
-          "Sorry, you have already staked/voted!"
-        );
-      });
-});
+// Not valid now
+// describe('Test for stakeForReporting function require statements', ()=>{
+//     it("Can't stake during reporting phase if user has already staked && reported earlier", async()=>{
+//       console.log(await question.currState.call()),
+//         await truffleAssert.reverts(
+//           question.stakeForReporting(0).send({from: accounts[0], gas: maxGas, value: toWei(5)}),
+//           "Sorry, you have already staked/voted!"
+//         );
+//       });
+// });
     
