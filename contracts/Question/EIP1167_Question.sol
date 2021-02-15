@@ -273,10 +273,10 @@ contract EIP1167_Question
     
     function redeemReportingPayout() external changeState checkState(State.RESOLVED)
     {
-        require(hasStaked[msg.sender], "You haven't participated in reporting phase !");
+        require(hasReported[msg.sender], "You haven't participated in reporting phase !");
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You staked on the wrong option !");
         assert(validationPool > 0); //validationPool can't be empty if the code reaches here!
-        hasStaked[msg.sender] = false;
+        hasReported[msg.sender] = false;
         
         // payout = userStake + (userStake*(reportingWrongOptionsBalance + validationFees)/reportingRightOptionBalance)
         uint256 rewardAmount = stakeDetails[msg.sender][winningOptionId]
@@ -302,7 +302,7 @@ contract EIP1167_Question
         
         emit payoutReceived(address(this), msg.sender, amount);
     }
-    
+     
     // Waste functions
     // function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
     //     return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
