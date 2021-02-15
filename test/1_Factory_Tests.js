@@ -220,22 +220,22 @@ describe("Factory/Question Contract", () => {
   });
 
 
-  it('computes validation fee correctly.', async()=>{  
-    startTime = lib.toUnix("01/01/2021 00:00:00")
-    endTime = lib.toUnix("12/01/2021 00:00:00")
-    currentTime = lib.toUnix("01/01/2021 00:00:05")
+  // it('computes validation fee correctly.', async()=>{  
+  //   startTime = lib.toUnix("01/01/2021 00:00:00")
+  //   endTime = lib.toUnix("12/01/2021 00:00:00")
+  //   currentTime = lib.toUnix("01/01/2021 00:00:05")
     
-    tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-    console.log('At month 0:', 'fee: ', tx/100);
+  //   tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+  //   console.log('At month 0:', 'fee: ', tx/100);
     
-    for(let i = 2; i<=11; i++){
-      currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
-      tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-      console.log('At month ', i, 'fee: ', tx/100);
-    }
+  //   for(let i = 2; i<=11; i++){
+  //     currentTime = lib.toUnix(lib.make2(i)+"/01/2021 00:00:00")
+  //     tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+  //     console.log('At month ', i, 'fee: ', tx/100);
+  //   }
     
-    currentTime = lib.toUnix("11/30/2021 23:23:59")
-    tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
-    console.log('At month 12:', 'fee: ', tx/100);
-  });
+  //   currentTime = lib.toUnix("11/30/2021 23:23:59")
+  //   tx = await question.TcalcValidationFeePer(currentTime, startTime, endTime).call();
+  //   console.log('At month 12:', 'fee: ', tx/100);
+  // });
 });
