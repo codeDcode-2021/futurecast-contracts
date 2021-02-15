@@ -243,8 +243,8 @@ contract EIP1167_Question
     function stakeForReporting(uint256 _optionId) external payable changeState checkState(State.REPORTING)
     {
         // One time calling function
-        require(!hasStaked[msg.sender] && !hasReported[msg.sender], "Sorry, you have already staked/voted!");
-        hasStaked[msg.sender] = true;
+        require(!hasReported[msg.sender], "Sorry, you have already staked !");
+        hasReported[msg.sender] = true;
         
         validationPool = validationPool.add(msg.value);
         reportingOptionBalances[_optionId] = reportingOptionBalances[_optionId].add(msg.value);
@@ -304,9 +304,9 @@ contract EIP1167_Question
     }
     
     // Waste functions
-    function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
-        return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
-    }
+    // function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
+    //     return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
+    // }
     // function changeFakeTimestamp(uint256 x) public {
     //     fakeTimeStamp = x;
     // }
