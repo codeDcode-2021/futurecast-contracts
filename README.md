@@ -24,6 +24,26 @@ contracts/Question/EIP1167_Question.sol
  - `npm run ldeploy`: Deploy the contract into the local node
  - `integ/info.json`: A file containing factoryInterface, factoryAddress, questionInterface
 
+## Reading events from front-end
+```
+await question.getPastEvents(
+    'staked',
+    {
+    filter: {
+        _user: [user]
+    },
+    fromBlock: 0,
+    toBlock: 'latest'
+    },
+    (error, events)=>{
+    events.forEach((item, index)=>{
+        // item.returnValues
+    });
+    }
+);
+```
+
+
 ## Directories
 ### Permanent:
  - `contracts`: smart contract scripts
