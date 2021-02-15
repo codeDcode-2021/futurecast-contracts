@@ -73,8 +73,6 @@ let advanceTimeToThis = async(futureTime)=>{
   }
 }
 
-
-
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
   admin = accounts[0];

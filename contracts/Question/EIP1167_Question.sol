@@ -2,7 +2,7 @@
 pragma solidity >= 0.7.0 < 0.8.0;
 pragma abicoder v2;
 
-import "../Utils/console.sol";
+// import "../Utils/console.sol"; // Testing purpose
 import { SafeMath } from "../Utils/SafeMath.sol";
 import { Formulas } from "../Utils/Formulas.sol";
 
@@ -128,10 +128,6 @@ contract EIP1167_Question
             reportingOptionBalances.push(0);
         }
         
-        // formulas = new Formulas();
-        // Code for testing purpose
-        console.log("Address of this contract is %s", address(this));
-        console.log("Owner of this contract is %s", owner);
     }
     
     function publicVariables() external view returns(
@@ -308,9 +304,9 @@ contract EIP1167_Question
     }
     
     // Waste functions
-    // function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
-    //     return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
-    // }
+    function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
+        return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
+    }
     // function changeFakeTimestamp(uint256 x) public {
     //     fakeTimeStamp = x;
     // }
