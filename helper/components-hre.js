@@ -1,14 +1,4 @@
 const maxGas = 10**7;
-// const optionSettings = {
-//   debug: true,
-//   total_accounts: 1000,
-//   default_balance_ether: 1000,
-//   gasLimit: maxGas,
-//   callGasLimit: maxGas,
-// };
-
-// const ganache = require("ganache-cli");
-// const provider = ganache.provider(optionSettings);
 const Web3 = require("web3");
 const hre = require("hardhat");
 const web3 = new Web3(hre.network.provider);
