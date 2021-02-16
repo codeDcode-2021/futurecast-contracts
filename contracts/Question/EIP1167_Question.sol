@@ -310,9 +310,8 @@ contract EIP1167_Question
     // function changeFakeTimestamp(uint256 x) public {
     //     fakeTimeStamp = x;
     // }
-    // function getTimeStamp() external view returns(uint256)
-    // {
-    //     return block.timestamp;
-    // }
-
+    function getTimeStamp() external view returns(uint256)
+    {
+        return block.timestamp;
+    }
 }

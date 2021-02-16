@@ -79,6 +79,8 @@ describe("Factory/Question Contract", () => {
     currentFakeTime = "10/15/2031 08:05:59";
     await advanceTimeToThis(currentFakeTime);
 
+    console.log("Block time: ", fromUnix(await question.getTimeStamp().call()));
+
     // Staker redeem
     for(let i = 1; i<=80; i++){
       initBalance = await web3.eth.getBalance(accounts[i]);
