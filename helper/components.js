@@ -1,11 +1,14 @@
-const maxGas = 10**7; // Changed maxGas from 10**6
+const maxGas = 10**7;
 const optionSettings = {
-    debug: true,
-    total_accounts: 1000, // Changed from 100
-    default_balance_ether: 1200, // Changed from 1000
-    gasLimit: maxGas,
-    callGasLimit: maxGas,
+  debug: true,
+  total_accounts: 1000,
+  default_balance_ether: 1000,
+  gasLimit: maxGas,
+  callGasLimit: maxGas,
 };
+
+const compiledFactory = require("./../artifacts/contracts/Factory/EIP1167_Factory.sol/EIP1167_Factory.json");
+const compiledQuestion = require("./../artifacts/contracts/Question/EIP1167_Question.sol/EIP1167_Question.json");
 
 const ganache = require("ganache-cli");
 const provider = ganache.provider(optionSettings);
@@ -39,29 +42,33 @@ let advanceBlock = () => {
   })
 }
 
+
+
 let advanceTimeAndBlock = async (time) => {
   await advanceTime(time);
   await advanceBlock();
   return Promise.resolve(await web3.eth.getBlock("latest"));
 };
 
-let advanceTimeToThis = async(futureTime)=>{
+async function advanceTimeToThis(futureTime){
   try {
     const blockNumber = await web3.eth.getBlockNumber();
     const block = await web3.eth.getBlock(blockNumber);
     currentTime = block.timestamp;
     
-    futureTime = lib.toUnix(futureTime);
+    futureTime = toUnix(futureTime);
     diff = futureTime - currentTime;
     await advanceTimeAndBlock(diff);
   } catch (error) {
     console.log(error);
   }
 }
+
 const make2 = (str) => {
   str = str.toString();
   return str.length == 1 ? "0".concat(str) : str;
 };
+
 const toUnix = (strDate) => Date.parse(strDate) / 1000;
 const fromUnix = (UNIX_timestamp) => {
   var a = new Date(UNIX_timestamp * 1000);
@@ -78,7 +85,7 @@ const fromUnix = (UNIX_timestamp) => {
   
 
 module.exports = {
-  web3, questionInstance, randomNumber, advanceTimeAndBlock,
-  make2, toUnix, fromUnix,
-  toEth, toWei,
+  web3, questionInstance, randomNumber, advanceTimeToThis,
+  make2, toUnix, fromUnix, toEth, toWei,
+  compiledFactory, compiledQuestion
 };
