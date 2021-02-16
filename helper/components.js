@@ -10,15 +10,12 @@ const optionSettings = {
 const compiledFactory = require("./../artifacts/contracts/Factory/EIP1167_Factory.sol/EIP1167_Factory.json");
 const compiledQuestion = require("./../artifacts/contracts/Question/EIP1167_Question.sol/EIP1167_Question.json");
 
+
 const ganache = require("ganache-cli");
 const provider = ganache.provider(optionSettings);
 const Web3 = require("web3");
 const web3 = new Web3(provider);
 
-const questionInstance = async (deployedAddress) => {
-    return (await new web3.eth.Contract(compiledQuestion.abi, deployedAddress))
-    .methods;
-};
 const toEth = (inWei) => web3.utils.fromWei(inWei.toString(), "ether");
 const toWei = (inEth) => web3.utils.toWei(inEth.toString(), "ether");
 
@@ -28,14 +25,14 @@ function randomNumber(min, max){
   return Math.floor(r);
 }
 
-let advanceTime = (time) => {
+function advanceTime(time){
   return new Promise((resolve, reject) => {
     web3.currentProvider.send({jsonrpc: '2.0',method: 'evm_increaseTime',params: [time],id: new Date().getTime()}, 
     (err, result) => {if (err) { return reject(err) }return resolve(result)})
   })
 }
 
-let advanceBlock = () => {
+function advanceBlock(){
   return new Promise((resolve, reject) => {
     web3.currentProvider.send({jsonrpc: '2.0',method: 'evm_mine',id: new Date().getTime()}, 
     (err, result) => {if (err) { return reject(err) }const newBlockHash = web3.eth.getBlock('latest').hash; return resolve(newBlockHash)})
@@ -44,7 +41,7 @@ let advanceBlock = () => {
 
 
 
-let advanceTimeAndBlock = async (time) => {
+async function advanceTimeAndBlock(time){
   await advanceTime(time);
   await advanceBlock();
   return Promise.resolve(await web3.eth.getBlock("latest"));
@@ -64,7 +61,7 @@ async function advanceTimeToThis(futureTime){
   }
 }
 
-const make2 = (str) => {
+function make2(str){
   str = str.toString();
   return str.length == 1 ? "0".concat(str) : str;
 };
@@ -83,6 +80,10 @@ const fromUnix = (UNIX_timestamp) => {
   return time;
 };
   
+const questionInstance = async (deployedAddress) => {
+  return (await new web3.eth.Contract(compiledQuestion.abi, deployedAddress))
+  .methods;
+};
 
 module.exports = {
   web3, questionInstance, randomNumber, advanceTimeToThis,
