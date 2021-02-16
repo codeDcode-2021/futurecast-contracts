@@ -1,20 +1,20 @@
 const maxGas = 10**7;
-const optionSettings = {
-  debug: true,
-  total_accounts: 1000,
-  default_balance_ether: 1000,
-  gasLimit: maxGas,
-  callGasLimit: maxGas,
-};
+// const optionSettings = {
+//   debug: true,
+//   total_accounts: 1000,
+//   default_balance_ether: 1000,
+//   gasLimit: maxGas,
+//   callGasLimit: maxGas,
+// };
+
+// const ganache = require("ganache-cli");
+// const provider = ganache.provider(optionSettings);
+const Web3 = require("web3");
+const hre = require("hardhat");
+const web3 = new Web3(hre.network.provider);
 
 const compiledFactory = require("./../artifacts/contracts/Factory/EIP1167_Factory.sol/EIP1167_Factory.json");
 const compiledQuestion = require("./../artifacts/contracts/Question/EIP1167_Question.sol/EIP1167_Question.json");
-
-
-const ganache = require("ganache-cli");
-const provider = ganache.provider(optionSettings);
-const Web3 = require("web3");
-const web3 = new Web3(provider);
 
 const toEth = (inWei) => web3.utils.fromWei(inWei.toString(), "ether");
 const toWei = (inEth) => web3.utils.toWei(inEth.toString(), "ether");
