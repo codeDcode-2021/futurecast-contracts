@@ -1,9 +1,9 @@
-const fs = require('fs-extra');
-const { toUnix } = require('../helper/t_conversions');
 const { ethers } = require("hardhat");
-
-const compiledFactory = require("../artifacts/contracts/Factory/Factory.sol/Factory.json");
-const compiledQuestion = require("../artifacts/contracts/Question/EIP1167_Question.sol/EIP1167_Question.json");
+const {
+  web3, questionInstance, randomNumber, advanceTimeToThis,
+  make2, toUnix, fromUnix, toEth, toWei,
+  compiledFactory, compiledQuestion
+} = require("../helper/components-ganache");
 
 main = async()=>{
   let accounts = await ethers.getSigners();
@@ -11,23 +11,17 @@ main = async()=>{
   let factoryInstance = await ethers.getContractFactory('Factory');
   factory = await factoryInstance.deploy();
 
-  description = "Who will win World Cup 2030";
-  options = ["India", "Australia"];
-  endTime = "12/31/2030 05:05:05";
+  let description = "Who will win World Cup 2030";
+  let options = ["India", "Australia"];
+  let bettingEndTime = "10/10/2030 00:00:00";
+  let eventEndTime = "10/10/2031 00:00:00";
 
   // Deploying sample questions
-  for(let i = 0; i<10; i++){
-    tx = await factory.connect(accounts[0]).createQuestion(description, options, toUnix(endTime));
+  for(let i = 0; i<100; i++){
+    tx = await factory.connect(accounts[0]).createQuestion(
+      description, options, toUnix(bettingEndTime), toUnix(eventEndTime)
+    );
   }
-  
-  // Making the integ/info.json
-  // var info = {
-  //   factoryAddress: factory.address,
-  //   factoryInterface: compiledFactory.abi,
-  //   questionInterface: compiledQuestion.abi
-  // }
-  // fs.ensureDirSync("./integ");
-  // fs.outputJSONSync("./integ/info.json", info);     
 }
 
 main();
