@@ -1,67 +1,64 @@
 const Web3 = require('web3');
 const fs = require('fs-extra');
+const HDWalletProvider = require('truffle-hdwallet-provider');
 
-// const HDWalletProvider = require('truffle-hdwallet-provider');
-// const web3 = new Web3(new HDWalletProvider(seedPhrase, rpcEndpoint));
+const seedPhrase = 'ritual crane almost reason fox engage pet display dilemma inspire hat vivid';
+// a group of words that allow access to a cryptocurrency wallet
+const rpcEndpoint = 'https://kovan.infura.io/v3/19b85f951b5a4440923fa8f61eb27245';
+// an endpint for connecting your web3 instance wallet and the blockchain node
 
-const hre = require("hardhat");
-const web3 = new Web3(hre.network.provider);
+// Setting up the provider
+const provider = new HDWalletProvider(seedPhrase, rpcEndpoint);
+const web3 = new Web3(provider);
 
-const minGas = 9500000;
+const info = require('./../integ/info.json');
+
+
 const deploy = async()=>{
-  const accounts = await web3.eth.getAccounts();
-  console.log('Attempting to deploy from account ', accounts[0]);
-  
+  accounts = await web3.eth.getAccounts();
+  console.log('Current account address: ', accounts[0]);
   initBal = await web3.eth.getBalance(accounts[0]);
+  console.log("Account balance: ", initBal);
   
-  // Deploying EIP1167_Question contract
-  const EIP1167_Question = await new web3.eth.Contract(compiledQuestion.abi)
-  .deploy({ data: compiledQuestion.bytecode})
-  .send({ from: accounts[0], gas: minGas});
-  console.log("Question contract is successfully deployed at: ", EIP1167_Question.options.address);
   
-  // Deploy 1: Factory contract
-  const factory = await new web3.eth.Contract(compiledFactory.abi)
-  .deploy({ 
-    data: compiledFactory.bytecode, 
-    arguments: [EIP1167_Question.options.address]
-  })
-  .send({ from: accounts[0], gas: minGas });
-  console.log("Factory contract is successfully deployed at: ", factory.options.address);
-  finBal = await web3.eth.getBalance(accounts[0]);
-  
-  console.log("Amount spent in deploying Question+Factory: ", toEth(initBal - finBal));  
-  
-  let description = "Who will win World Cup 2030";
-  let options = ["India", "Australia"];
-  let bettingEndTime = "10/10/2030 00:00:00";
-  let eventEndTime = "10/10/2031 00:00:00";
-  
-  let totalGas = 0;
-  for(let i = 0; i < 10; ++i)
-  {
-    tx = await factory.methods.createQuestion(
-      description, options, toUnix(bettingEndTime), toUnix(eventEndTime)
-      ).send({from: accounts[0], gas: minGas});
-      totalGas+=tx.gasUsed;
-      console.log(tx.gasUsed);
-    }
+  factory = new web3.eth.Contract(
+    info.factoryInterface,
+    info.factoryAddress
+    );
     
-    console.log("Total gas used: ", totalGas);    
-    return process.exit(0);
+  res = await factory.methods.giveQuestionAddresses().call();
+  console.log(res)
+
+    i =13
+    question = await new web3.eth.Contract(info.questionInterface, res[i])
     
-    // printing important information
-    // try {
-      //   var info = {
-        //     factoryAddress: factory.options.address,
-    //     factoryInterface: compiledFactory.abi,
-    //     questionInterface: compiledQuestion.abi
-    //   }  
-    //   fs.ensureDirSync("./integ");
-    //   fs.outputJSONSync("./integ/info.json", info);
-    // } catch (error) {
-    //   console.log(error);
-    // }
-  };
+    res = await question.getPastEvents(
+      'staked',
+      {
+        filter: {
+          _market: [res[i]],
+          _user: [accounts[0]]
+        },
+        fromBlock: '23400000',
+        toBlock:   'latest'
+      }
+      );
+      
+      amount = {}  
+      res.forEach(item => {
+        // console.log(item.returnValues);
+        if(amount[item.returnValues._optionId] === undefined){
+          amount[item.returnValues._optionId]
+          = parseInt(item.returnValues._amount);
+        }
+        else{
+          amount[item.returnValues._optionId]
+          += parseInt(item.returnValues._amount);
+        }
+      });
+      console.log(amount);
   
-  deploy();
+  return process.exit(0);
+};
+  
+deploy();
