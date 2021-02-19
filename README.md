@@ -1,10 +1,44 @@
 # Kokken
+## Introduction
+ - Simple decentralized prediction market on ethereum
+ - Owners:
+   - Post a question
+   - Post start time & end time
+   - Get the rewards at the end
+ - Users:
+   - Stake on an option
+     - Pay some validation+platform fee, which increases as we reach closer to the end time
+     - Can change their option at any time
+     - Get reward after resolution phase
+   - Change their option by paying a small amount of fee
+ - Validators:
+   - Can validate on an option
+   - Get rewards if their option turns out to be correct
 
-## Important files
-```
-contracts/Factory/Factory.sol
-contracts/Question/EIP1167_Question.sol
-```
+ - Right users will always get profit
+ - Right validators will always get profit
+ - Owner will get their benefit
+ - Betting, inactive, reporting, resolved
+
+## Features
+ - External staking through smart contract, ps: more profit to everyone
+ - Deployment on matic
+ - Compatible with metamask and portis
+
+## Technology used:
+ - Smart contract: 
+   - Solidity
+   - [EIP1167 Proxy contract](https://eips.ethereum.org/EIPS/eip-1167)
+ - Front-end:
+   - React
+   - Web3
+   - Metamask
+   - Portis
+   - Infura
+
+## Smart contracts
+ - `contracts/Factory/EIP1167_Factory.sol`
+ - `contracts/Question/EIP1167_Question.sol`
 
 ## How to run?
  - `npm i`
@@ -27,22 +61,22 @@ contracts/Question/EIP1167_Question.sol
 ## Reading events from front-end
 ```
 await question.getPastEvents(
-    'staked',
-    {
+  'staked',
+  {
     filter: {
-        _user: [user]
-    },
-    fromBlock: 0,
-    toBlock: 'latest'
-    },
-    (error, events)=>{
-    events.forEach((item, index)=>{
-        // item.returnValues
-    });
-    }
+    _user: [user]
+  },
+  fromBlock: 0,
+  toBlock: 'latest'
+  },
+  (error, events)=>{
+  events.forEach((item, index)=>{
+    console.log(item.address); // Contract address
+    console.log(item.returnValues); // event arguments
+  });
+  }
 );
 ```
-
 
 ## Directories
 ### Permanent:
@@ -52,27 +86,47 @@ await question.getPastEvents(
 
 ### Temporary
  - `artifacts`: compiled scripts, needed for integrating with front-end
- 
-    We need the `interface` files of the compiled contracts.
-    After smart contract development, we can write a script which will dump `interface` code into a separate file. This separate file will be downloaded by the user to interact with contracts.
- 
 ## VS Code Extensions
  - Solidity by Juan Blanco: error messages in the editor
  - Prettier - Code Formatter: formatting js files
 
-## Explanation
-
-Phases: {BETTING, REPORTING, RESOLVED}
-
-1) BETTING
-    - People vote on their belief.
-    - Market maker fee applied (0.5%)
-    - Validation fee applied. (Fee - 0.5%)
-    - Fee calculated by a time dependant formula
-
-2) REPORTING
-    - People (Ideally other than the original voters) vote on the right answer.
-    - No fees applied (yet).
-    - People receive money from wrong option voters in the reporting phase as well as from the validation fee pool.
-    - Theoretically, more lucrative to stake money in this phase.
-    - Hence, faster resolution times can be achieved.
+## Contributors
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/akcgjc007">
+          <img src="https://avatars2.githubusercontent.com/u/56300182" width="100;" alt="anupam"/>
+          <br />
+          <sub><b>Anupam Kumar</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/rashtrakoff">
+          <img src="https://avatars2.githubusercontent.com/u/55590938" width="100;" alt="anupam"/>
+          <br />
+          <sub><b>Chinmay Sai Vemuri</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/sksuryan">
+          <img src="https://avatars2.githubusercontent.com/u/42460131" width="100;" alt="anupam"/>
+          <br />
+          <sub><b>Saurabh Kumar Suryan</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/CapTen101">
+          <img src="https://avatars2.githubusercontent.com/u/45699327" width="100;" alt="anupam"/>
+          <br />
+          <sub><b>Tushar Rohilla</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/VipinVIP">
+          <img src="https://avatars2.githubusercontent.com/u/58673683" width="100;" alt="anupam"/>
+          <br />
+          <sub><b>VIPIN K P</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
