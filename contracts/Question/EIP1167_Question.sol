@@ -209,7 +209,7 @@ contract EIP1167_Question
         stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
         bettingOptionBalances[_optionId] = bettingOptionBalances[_optionId].add(stakeAmount);
         
-        emit staked(msg.sender, _optionId, msg.value);
+        emit staked(msg.sender, _optionId, stakeAmount);
     }
     
     
