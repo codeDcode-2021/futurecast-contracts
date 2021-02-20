@@ -12,7 +12,7 @@ const {
   web3, questionInstance, randomNumber, advanceTimeToThis,
   make2, toUnix, fromUnix, toEth, toWei,
   compiledFactory, compiledQuestion
-} = require("../helper/components");
+} = require("../helper/components-ganache");
 
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
@@ -52,7 +52,7 @@ beforeEach(async () => {
 describe("Test for require statements in functions 'Stake' and 'Init'", ()=>{
 
     it("Can't initialize a market again", async()=>{
-      // console.log(await question.marketInitialized().call()); // Should return true
+      // console.log(await question.marketInitialized().call()); // Should return true --> it does
       await truffleAssert.reverts(
         question.init(
           user, 

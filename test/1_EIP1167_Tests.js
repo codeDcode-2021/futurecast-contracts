@@ -11,7 +11,7 @@ const {
   web3, questionInstance, randomNumber, advanceTimeToThis,
   make2, toUnix, fromUnix, toEth, toWei,
   compiledFactory, compiledQuestion
-} = require("./helper/components");
+} = require("../helper/components-ganache");
 
 beforeEach(async () => {
     accounts = await web3.eth.getAccounts();
