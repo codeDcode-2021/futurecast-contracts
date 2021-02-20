@@ -2,7 +2,6 @@
 pragma solidity >= 0.7.0 < 0.8.0;
 pragma abicoder v2;
 
-// import "../Utils/console.sol"; // Testing purpose
 import { SafeMath } from "../Utils/SafeMath.sol";
 import { Formulas } from "../Utils/Formulas.sol";
 
@@ -43,10 +42,10 @@ contract EIP1167_Question
     
     
     
-    event phaseChange(address indexed _market, State _state);
-    event stakeChanged(address indexed _market, address indexed _user, uint256 _fromOptionId, uint256 _toOptionId, uint256 _amount); // Make _market indexed ?
-    event staked(address indexed _market, address indexed _user, uint256 _optionId, uint256 _amount);
-    event payoutReceived(address indexed _market, address indexed _user, uint256 _amount);
+    event phaseChange(State _state);
+    event stakeChanged(address indexed _user, uint256 _fromOptionId, uint256 _toOptionId, uint256 _amount);
+    event staked(address indexed _user, uint256 _optionId, uint256 _amount);
+    event payoutReceived(address indexed _user, uint256 _amount);
 
 
     
@@ -67,7 +66,7 @@ contract EIP1167_Question
         {
             currState = State.INACTIVE;
             
-            emit phaseChange(address(this), currState);
+            emit phaseChange(currState);
         }
         
         if(currState == State.INACTIVE && block.timestamp >= eventEndTime)
@@ -75,7 +74,7 @@ contract EIP1167_Question
             currState = State.REPORTING;
             reportingStartTime = block.timestamp; // New line
 
-            emit phaseChange(address(this), currState);
+            emit phaseChange(currState);
         }
 
         if(currState == State.REPORTING && validationPool.sub(validationFeePool) >= marketPool.div(2))
@@ -88,7 +87,7 @@ contract EIP1167_Question
             (bettingRightOptionBalance, bettingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(bettingOptionBalances);
             (reportingRightOptionBalance, reportingWrongOptionsBalance) = winningOptionId.calcRightWrongOptionsBalances(reportingOptionBalances);
             
-            emit phaseChange(address(this), currState);
+            emit phaseChange(currState);
         }
         _;
     }
@@ -180,6 +179,7 @@ contract EIP1167_Question
         return optionId;
     }
     
+    // Is this function required ?
     function getMarketBalance() external view returns (uint256)
     {
         return address(this).balance;
@@ -204,12 +204,12 @@ contract EIP1167_Question
         validationPool = validationPool.add(validationFee);
         marketPool = marketPool.add(stakeAmount);
         
-        assert(marketMakerFee + validationFee + stakeAmount == amount); // Dangerous statement, try to round-off some error
+        // assert(marketMakerFee + validationFee + stakeAmount == amount); // Dangerous statement, try to round-off some error
 
         stakeDetails[msg.sender][_optionId] = optionStakeAmount.add(stakeAmount);
         bettingOptionBalances[_optionId] = bettingOptionBalances[_optionId].add(stakeAmount);
         
-        emit staked(address(this), msg.sender, _optionId, msg.value);
+        emit staked(msg.sender, _optionId, stakeAmount);
     }
     
     
@@ -224,7 +224,7 @@ contract EIP1167_Question
         require(hasStaked[msg.sender], "You haven't voted before!");
         require(stakeDetails[msg.sender][_fromOptionId] >= _amount, "Stake change amount is higher than the staked amount !");
         require(_fromOptionId != _toOptionId, "Options are the same !");
-        require(_amount > 100, "Insufficient stake change amount"); // Is this required ?
+        require(_amount > 100, "Insufficient stake change amount");
 
         uint256 fromOptionStakedAmount = stakeDetails[msg.sender][_fromOptionId];
         uint256 toOptionStakedAmount = stakeDetails[msg.sender][_toOptionId];
@@ -236,7 +236,7 @@ contract EIP1167_Question
         bettingOptionBalances[_toOptionId] = bettingOptionBalances[_toOptionId].add(_amount);
         stakeDetails[msg.sender][_toOptionId] = toOptionStakedAmount.add(_amount);
 
-        emit stakeChanged(address(this), msg.sender, _fromOptionId, _toOptionId, _amount);
+        emit stakeChanged(msg.sender, _fromOptionId, _toOptionId, _amount);
     }
     
     // This function is for staking during the reporting phase:
@@ -250,7 +250,7 @@ contract EIP1167_Question
         reportingOptionBalances[_optionId] = reportingOptionBalances[_optionId].add(msg.value);
         stakeDetails[msg.sender][_optionId] = msg.value;
         
-        emit staked(address(this), msg.sender, _optionId, msg.value);
+        emit staked(msg.sender, _optionId, msg.value);
     }
     
     function redeemStakedPayout() external payable changeState checkState(State.RESOLVED)
@@ -259,7 +259,7 @@ contract EIP1167_Question
         require(stakeDetails[msg.sender][winningOptionId] != 0, "You lost your stake as you didn't predict the answer correctly !");
         hasStaked[msg.sender] = false;
 
-        // payout = userStake + (userStake*(bettingWrongOptionsBalance + stakeChangePool)/bettingRightOptionBalance)
+        // Formula -> payout = userStake + (userStake*(bettingWrongOptionsBalance + stakeChangePool)/bettingRightOptionBalance)
         uint256 rewardAmount = stakeDetails[msg.sender][winningOptionId]
         .calcPayout(bettingRightOptionBalance, bettingWrongOptionsBalance.add(stakeChangePool));
 
@@ -268,7 +268,7 @@ contract EIP1167_Question
         address payable receiver = msg.sender;
         require(receiver.send(rewardAmount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
         
-        emit payoutReceived(address(this), msg.sender, rewardAmount);
+        emit payoutReceived(msg.sender, rewardAmount);
     }
     
     function redeemReportingPayout() external changeState checkState(State.RESOLVED)
@@ -288,30 +288,21 @@ contract EIP1167_Question
         stakeDetails[msg.sender][winningOptionId] = 0;
 
         address payable receiver = msg.sender;
-        require(receiver.send(rewardAmount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
+        require(receiver.send(rewardAmount), "Transaction failed !"); 
         
-        emit payoutReceived(address(this), msg.sender, rewardAmount);
+        emit payoutReceived(msg.sender, rewardAmount);
     }
     
     function redeemMarketMakerPayout() external changeState checkState(State.RESOLVED) onlyOwner
     {
         require(marketMakerPool != 0, "Market maker has already collect the fees !");
+
         uint256 amount = marketMakerPool;
         marketMakerPool = 0;
-        require(owner.send(amount), "Transaction failed !"); // Check if the transaction fails then every other state change in this function is undone.
-        
-        emit payoutReceived(address(this), msg.sender, amount);
+
+        require(owner.send(amount), "Transaction failed !"); 
+    
+        emit payoutReceived(msg.sender, amount);
     }
-     
-    // Waste functions
-    // function TcalcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) public pure returns (uint256){
-    //     return Formulas.calcValidationFeePer(_currTime, _startTime, _endTime);
-    // }
-    // function changeFakeTimestamp(uint256 x) public {
-    //     fakeTimeStamp = x;
-    // }
-    function getTimeStamp() external view returns(uint256)
-    {
-        return block.timestamp;
-    }
+
 }

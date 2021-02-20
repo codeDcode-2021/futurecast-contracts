@@ -26,7 +26,7 @@ contract EIP1167_Factory is CloneFactory
         
         require((_bettingEndTime > block.timestamp) && (_eventEndTime > block.timestamp), "Timelimit(s) not valid");
         /// @dev Have a discussion about the following condition.
-        require(_bettingEndTime < _eventEndTime, "Betting end time can't be smaller than or equal to event end!");
+        require(_bettingEndTime <= _eventEndTime, "Event end time can't be smaller than the betting end time !");
         _;
     }
     
