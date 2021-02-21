@@ -62,21 +62,20 @@ const deploy = async () => {
   }
 
   console.log("Total gas used: ", totalGas);
-  
+
   var info = {
     factoryAddress: factory.options.address,
     factoryInterface: compiledFactory.abi,
-    questionInterface: compiledQuestion.abi
-  }
+    questionInterface: compiledQuestion.abi,
+  };
   fs.ensureDirSync("./integ");
   fs.outputJSONSync("./integ/info.json", info);
-  
-  
+
   return process.exit(0);
 };
 
 try {
   deploy();
 } catch (er) {
-  console.log(er)
+  console.log(er);
 }

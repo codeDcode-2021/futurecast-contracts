@@ -11,7 +11,7 @@ contract EIP1167_Factory is CloneFactory
     address public implementation; /// @dev Market implementation contract. 
     address[] public questionAddresses;
     
-    event newQuestionCreated(address indexed _question, string _description, uint256 _bettingEndTime, uint256 _eventEndTime);
+    event newQuestionCreated(address indexed _question, string _description, uint256 _bettingEndTime, uint256 _eventEndTime, uint256 _blockNumber);
     
     /// @dev To check if a market is valid or not.
     modifier validParams(string memory _question, string[] memory _options, uint256 _bettingEndTime, uint256 _eventEndTime)
@@ -50,7 +50,7 @@ contract EIP1167_Factory is CloneFactory
         EIP1167_Question(newQuestion).init(msg.sender, _description, _options, _bettingEndTime, _eventEndTime);
         questionAddresses.push(address(newQuestion));
         
-        emit newQuestionCreated(address(newQuestion), _description, _bettingEndTime, _eventEndTime);
+        emit newQuestionCreated(address(newQuestion), _description, _bettingEndTime, _eventEndTime, block.number);
     }
 
     /// @dev Is this function necessary as the addresses are public in the first place.
@@ -58,5 +58,5 @@ contract EIP1167_Factory is CloneFactory
     {
         return questionAddresses;
     }
-        
+
 }

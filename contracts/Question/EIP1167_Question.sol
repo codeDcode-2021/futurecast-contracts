@@ -131,7 +131,7 @@ contract EIP1167_Question
     
     function publicVariables() external view returns(
         string memory,
-        uint256[14] memory, 
+        uint256[15] memory, 
         uint256[][2] memory,
         string[] memory
         )
@@ -152,7 +152,8 @@ contract EIP1167_Question
             validationPool,
             validationFeePool,
             stakeChangePool,
-            winningOptionId
+            winningOptionId,
+            uint256(currState)
         ],
         [
             bettingOptionBalances,
@@ -305,4 +306,9 @@ contract EIP1167_Question
         emit payoutReceived(msg.sender, amount);
     }
 
+
+
+    function currentValidationFee() public view returns (uint256){
+        return block.timestamp.calcValidationFeePer(startTime, bettingEndTime);
+    }
 }
