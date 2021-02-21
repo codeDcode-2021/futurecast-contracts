@@ -25,14 +25,19 @@
  - Deployment on matic
  - Compatible with metamask and portis
 
+## Platform fee for stakers over time
+The platform fee increases with degree 5 polynomial function as the number of days increases, explained by the given formula `y = k*x^5`, where `x` is the number of days and `k` is a normalizing constant. 
+
+<img width="500" src="./helper/p_fee.png">
+
+## Rewards vs. stake over time
+<img width="500" src="./helper/mon.png">
+
 ## Technology used:
  - Smart contract: 
    - Solidity
    - [EIP1167 Proxy contract](https://eips.ethereum.org/EIPS/eip-1167)
    - [OpenZeppelin](https://openzeppelin.com/)
- - Front-end:
-   - React
-   - Web3
 
 ## How to run?
  - `npm i`: Installation
@@ -46,8 +51,7 @@
     .
     ├── contracts
     │   ├── Factory
-    │   │   ├── EIP1167_Factory.sol
-    │   │   └── Factory.sol
+    │   │   └── EIP1167_Factory.sol
     │   ├── Question
     │   │   └── EIP1167_Question.sol
     │   └── Utils
@@ -65,7 +69,6 @@
     │   ├── 1_local_node.js
     │   └── 2_any.js
     ├── package.json
-    ├── package-lock.json
     ├── README.md
     └── test
         ├── 1_EIP1167_Tests.js
