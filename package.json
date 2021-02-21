@@ -6,9 +6,9 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "lnode": "npx hardhat node;",
-    "ldeploy": "npx hardhat run --network localhost migrations/1_local_node.js;",
-    "any:deploy": "node migrations/2_any.js"
+    "node": "npx hardhat node;",
+    "hh": "npx hardhat run --network localhost migrations/1_local_node.js;",
+    "any": "node migrations/2_any.js"
   },
   "repository": {
     "type": "git",

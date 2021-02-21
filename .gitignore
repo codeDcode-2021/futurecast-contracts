@@ -1,6 +1,6 @@
-node_modules
-artifacts
-cache
-build
+node_modules/
+artifacts/
+cache/
+build/
+bin/
 package-lock.json
-bin

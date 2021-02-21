@@ -21,11 +21,11 @@ module.exports = {
     },
     maticMainnet: {
       url: "https://rpc-mainnet.matic.network",
-      accounts: ['0xEAB0349A1c6CF8439C16418C259F65378bd052BD']
+      accounts: ['XXXXXXXXXXXX']
     },
     maticMumbaiTestnet: {
       url: "https://rpc-mumbai.matic.today",
-      accounts: ['0xEAB0349A1c6CF8439C16418C259F65378bd052BD']
+      accounts: ['XXXXXXXXXXXX']
     }
   },
   solidity: {
