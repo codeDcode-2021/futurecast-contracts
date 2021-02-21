@@ -19,14 +19,6 @@ module.exports = {
         accountsBalance: "1000000000000000000000"
       }
     },
-    maticMainnet: {
-      url: "https://rpc-mainnet.matic.network",
-      accounts: ['XXXXXXXXXXXX']
-    },
-    maticMumbaiTestnet: {
-      url: "https://rpc-mumbai.matic.today",
-      accounts: ['XXXXXXXXXXXX']
-    }
   },
   solidity: {
     version: "0.7.6",

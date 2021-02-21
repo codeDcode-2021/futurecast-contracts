@@ -5,7 +5,7 @@ const fs = require("fs-extra");
 const compiledFactory = require("./../artifacts/contracts/Factory/EIP1167_Factory.sol/EIP1167_Factory.json");
 const compiledQuestion = require("./../artifacts/contracts/Question/EIP1167_Question.sol/EIP1167_Question.json");
 
-seedPhrase = "SEED-PHRASE";
+seedPhrase = "seed-phrase";
 rpcEndpoint = "https://rpc-mumbai.matic.today";
 
 const { toUnix } = require("./../helper/components-ganache");
@@ -42,27 +42,36 @@ const deploy = async () => {
   finBal = await web3.eth.getBalance(accounts[0]);
   console.log("Amount spent in deploying Question+Factory: ", initBal - finBal);
 
-  let description = "Which team will win Etherpunk?";
-  let options = ["codeDcode", "NoOneElse"];
-  let bettingEndTime = "02/21/2031 00:00:00";
-  let eventEndTime = "02/22/2031 00:00:00";
+  description = "Who will win India vs England?";
+  options = ["India", "England", "Tie"];
+  bettingEndTime = "03/10/2021 00:00:00";
+  eventEndTime = "03/15/2021 00:00:00";
+  tx = await factory.methods
+    .createQuestion(
+      description,
+      options,
+      toUnix(bettingEndTime),
+      toUnix(eventEndTime)
+    )
+    .send({ from: accounts[0], gas: minGas });
+  console.log(tx.gasUsed);
+  
+  description = "Which team will win Etherpunk?";
+  options = ["codeDcode", "not-codeDcode"];
+  bettingEndTime = "02/22/2021 00:00:00";
+  eventEndTime = "02/23/2021 00:00:00";
+  tx = await factory.methods
+    .createQuestion(
+      description,
+      options,
+      toUnix(bettingEndTime),
+      toUnix(eventEndTime)
+    )
+    .send({ from: accounts[0], gas: minGas });
+  console.log(tx.gasUsed);
+  
 
-  let totalGas = 0;
-  for (let i = 0; i < 7; ++i) {
-    tx = await factory.methods
-      .createQuestion(
-        description,
-        options,
-        toUnix(bettingEndTime),
-        toUnix(eventEndTime)
-      )
-      .send({ from: accounts[0], gas: minGas });
-    totalGas += tx.gasUsed;
-    console.log(tx.gasUsed);
-  }
-
-  console.log("Total gas used: ", totalGas);
-
+  // Printing
   var info = {
     factoryAddress: factory.options.address,
     factoryInterface: compiledFactory.abi,
