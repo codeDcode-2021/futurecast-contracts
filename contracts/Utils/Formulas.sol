@@ -19,7 +19,7 @@ library Formulas
     {
         /// @dev Check for overflows. Theoretically, they shouldn't occur here since _amount is in wei and is usually much greater than 10**4.
         /// @dev Since the _amount is in weis, decimals can be ignored as they don't have a lot of value. This functions rounds towards 0.
-        /// @notice _marketMakerFeePer = 0.5% which is equal to 50bp.
+        /// @notice _marketMakerFeePer = 1% which is equal to 100bp.
         require(_marketMakerFeePer.mul(_amount) > 10**4, "Amount too small !");
         // return _marketMakerFeePer*_amount/10**4;
         return (_marketMakerFeePer.mul(_amount)).div(10**4);
@@ -27,8 +27,8 @@ library Formulas
 
     function calcValidationFee(uint256 _marketMakerFeePer, uint256 _validationFeePer, uint256 _amount) internal pure returns(uint256)
     {
-        require((_validationFeePer.sub(_marketMakerFeePer))*_amount > 10**4, "Amount is too small !");
-        return ((_validationFeePer.sub(_marketMakerFeePer))*_amount)/10**4;
+        require((_validationFeePer.sub(_marketMakerFeePer)).mul(_amount) > 10**4, "Amount is too small !");
+        return (((_validationFeePer.sub(_marketMakerFeePer)).mul(_amount)).div(10**4));
     }
 
     function calcRightWrongOptionsBalances(uint256 _rightOption, uint256[] memory _optionBalances) internal pure returns(uint256, uint256)
@@ -66,11 +66,9 @@ library Formulas
     function calcValidationFeePer(uint256 _currTime, uint256 _startTime, uint256 _endTime) internal pure returns(uint256)
     {
         /***
-         * @dev Should return a value such that value/1000000 is the real percentage
          * @dev Check for rounding errors.
          * @dev Return the percentage in bp format. Precision = 2 decimal places.
          * So, 60% = 6000bp, 5% = 500bp, 0.01% = 1bp and so on.
-         * 
          */
         uint256 fee = 0;
         uint256 calFactor = 10**10; // No scaling factors as this factor is neutralized later
