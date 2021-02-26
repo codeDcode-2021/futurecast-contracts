@@ -130,9 +130,10 @@ contract EIP1167_BiconomyQuestion
     
     function publicVariables() external view returns(
         string memory,
-        uint256[14] memory, 
+        uint256[11] memory, 
         uint256[][2] memory,
-        string[] memory
+        string[] memory,
+        uint8
         )
     {
         /// @dev Values returned to Front-end has changed. The second array returns 14 values instead of 15.
@@ -149,16 +150,14 @@ contract EIP1167_BiconomyQuestion
             reportingWrongOptionsBalance,
             marketPool,
             validationPool,
-            validationFeePool,
-            stakeChangePool,
-            winningOptionId,
-            uint256(currState)
+            winningOptionId
         ],
         [
             bettingOptionBalances,
             reportingOptionBalances
         ],
-            options
+            options,
+            uint8(currState)
         );
     }
 
