@@ -6,6 +6,7 @@
 [![Open Source Love png1](https://badges.frapsoft.com/os/v1/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badges/)
 
 
+<img width="640" src="./helper/top.gif">
 
 # Improvised Decentralized prediction market smart contracts
 ## Introduction
