@@ -10,7 +10,7 @@
 
 # Improvised Decentralized prediction market smart contracts
 ## Introduction
-[Forecast](https://futureforecast.netlify.app/) is a decentralized market where users can stake on a question and get exciting and high returns. We can provide you more returns with the help of external network staking clients. What are you waiting for? Lets stake some Matic with minimal gas fee!🥳
+[FutureCast](https://futureforecast.netlify.app/) is a decentralized market where users can stake on a question and get exciting and high returns. We can provide you more returns with the help of external network staking clients. What are you waiting for? Lets stake some Matic with minimal gas fee!🥳
 
 ### Type of users
  - An owner:
